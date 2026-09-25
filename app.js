@@ -77,8 +77,8 @@ function isHoneypotFilled(form) {
 }
 
 const products = [
-  { id: 'apex-pro', collection: 'bikes', name: 'ETQ APEX', image: 'assets/apex-14-12-new.png', alt: 'ETQ APEX electric dirt bike with 14/12 wheel setup', price: 899.99, color: '#263746', mark: 'A', stock: 3, conversionSpec: '⚡ 3000W PEAK • 🔋 48V 23Ah • 🛞 14"/12" • 📏 28.3" SEAT', tagline: 'Agile, lightweight electric performance tuned for instant throttle response and effortless urban handling.', microSubhead: 'Tuned for speed, control, and daily versatility.', riderFit: 'Optimized for riders 4\'11"–5\'10"', specSummary: ['⚡ 3000W PEAK', '🔋 48V 23Ah', '🛞 14"/12"', '📏 28.3" SEAT'], description: 'Agile, lightweight electric performance tuned for instant throttle response and effortless urban handling.', specs: ['Range', '85 km'], detail: 'Motor 3 kW', range: '85 km estimated', rangeNote: 'Estimated range; terrain, rider weight, speed, temperature, and riding mode affect battery range.', peakPower: '3 kW', continuousPower: '[CONFIRM CONTINUOUS POWER]', battery: '48V 23Ah', topSpeed: '[CONFIRM TOP SPEED]', chargeTime: '[CONFIRM CHARGE TIME]', weight: '[CONFIRM BIKE WEIGHT]', seatHeight: '28.3"', recommendedHeight: '4\'11"–5\'10"', maxRiderWeight: '[CONFIRM MAX RIDER / PAYLOAD WEIGHT]', wheels: '14" / 12" wheels', tires: '[CONFIRM TIRE SIZES]', warranty: '12-month battery + motor coverage', bestFor: ['Beginner riders', 'Daily urban riding', 'Lightweight or compact riders'], riderFitGuidance: 'A compact, agile choice for riders in the listed height range. Taller riders or riders prioritizing a full-size frame may prefer ETQ VORTEX.', useCases: ['Urban riding: responsive and easy to handle.', 'Commuting: quiet electric performance for daily trips.', 'Recreation: versatile riding for casual outings.', 'Trails: suitable for lighter trail use; confirm terrain limits before riding.', 'Off-road: choose ETQ VORTEX for more aggressive terrain.'], accessoryFitment: 'The storefront describes the vented plates as custom-molded for ETorqued frames and intended for ETQ APEX and ETQ VORTEX frames. Confirm which plate maps to ETQ APEX before publishing a model-specific fitment claim.' },
-  { id: 'vortex-stealth', collection: 'bikes', name: 'ETQ VORTEX', image: 'assets/vortex-17-14-new.jpg', alt: 'ETQ VORTEX electric dirt bike with 17/14 wheel setup', price: 1499.99, color: '#17191d', mark: 'V', stock: 5, conversionSpec: '⚡ 6000W PEAK • 🔋 72V 25Ah • 🛞 17"/14" • 📏 31.9" SEAT', tagline: 'Unleashed 6000W high-torque domination built for aggressive off-road terrain and max power delivery.', microSubhead: 'Raw power, full-size frame, and peak terrain control.', riderFit: 'Optimized for riders 5\'9"–6\'5"', specSummary: ['⚡ 6000W PEAK', '🔋 72V 25Ah', '🛞 17"/14"', '📏 31.9" SEAT'], description: 'Unleashed 6000W high-torque domination built for aggressive off-road terrain and max power delivery.', specs: ['Range', '60 km'], detail: 'Motor 6 kW', range: '60 km estimated', rangeNote: 'Estimated range; terrain, rider weight, speed, temperature, and riding mode affect battery range.', peakPower: '6 kW', continuousPower: '[CONFIRM CONTINUOUS POWER]', battery: '72V 25Ah', topSpeed: '[CONFIRM TOP SPEED]', chargeTime: '[CONFIRM CHARGE TIME]', weight: '[CONFIRM BIKE WEIGHT]', seatHeight: '31.9"', recommendedHeight: '5\'9"–6\'5"', maxRiderWeight: '[CONFIRM MAX RIDER / PAYLOAD WEIGHT]', wheels: '17" / 14" wheels', tires: '[CONFIRM TIRE SIZES]', warranty: '12-month battery + motor coverage', bestFor: ['Aggressive off-road riding', 'Trail riding', 'Tall riders'], riderFitGuidance: 'A full-size, high-torque choice for riders in the listed height range and riders who want more off-road capability. Shorter or compact riders may find ETQ APEX easier to manage.', useCases: ['Urban riding: possible, but the full-size setup favors open riding.', 'Commuting: use only where the bike and route are permitted.', 'Recreation: suited to high-output recreational riding.', 'Trails: intended for stronger trail performance.', 'Off-road: the better fit for aggressive off-road use.'], accessoryFitment: 'The storefront describes the vented plates as custom-molded for ETorqued frames and intended for ETQ APEX and ETQ VORTEX frames. Confirm which plate maps to ETQ VORTEX before publishing a model-specific fitment claim.' },
+  { id: 'apex-pro', collection: 'bikes', name: 'ETQ APEX', image: 'assets/apex-14-12-new.png', alt: 'ETQ APEX electric dirt bike with 14/12 wheel setup', price: 899.99, color: '#263746', mark: 'A', stock: 3, conversionSpec: '⚡ 3000W PEAK • 🔋 48V 23Ah • 🛞 14"/12" • 📏 28.3" SEAT', tagline: 'Agile, lightweight electric performance tuned for instant throttle response and effortless urban handling.', microSubhead: 'Tuned for speed, control, and daily versatility.', riderFit: 'Optimized for riders 4\'11"–5\'10"', specSummary: ['⚡ 3000W PEAK', '🔋 48V 23Ah', '🛞 14"/12"', '📏 28.3" SEAT'], description: 'Agile, lightweight electric performance tuned for instant throttle response and effortless urban handling.', specs: ['Range', 'Up to 34 miles'], detail: 'Motor 3 kW', range: 'Up to 34 miles (approx. 55 km) per charge', rangeNote: 'Estimated range; terrain, rider weight, speed, temperature, and riding mode affect battery range.', peakPower: 'Up to 3,000W peak', battery: '48V 23Ah lithium battery', topSpeed: 'Up to 40 mph', chargeTime: 'Approximately 6 hours', weight: 'Approximately 121 lb (listed net weight)', seatHeight: '28.3"', recommendedHeight: '4\'11"–5\'10"', maxRiderWeight: 'Approximately 265 lb', wheels: '14" / 12" wheels', warranty: '1-year limited warranty', bestFor: ['Beginner riders', 'Daily urban riding', 'Lightweight or compact riders'], riderFitGuidance: 'A compact, agile choice for riders in the listed height range. Taller riders or riders prioritizing a full-size frame may prefer ETQ VORTEX.', useCases: ['Urban riding: responsive and easy to handle.', 'Commuting: quiet electric performance for daily trips.', 'Recreation: versatile riding for casual outings.', 'Trails: suitable for lighter trail use; confirm terrain limits before riding.', 'Off-road: choose ETQ VORTEX for more aggressive terrain.'], accessoryFitment: 'The storefront describes the vented plates as custom-molded for ETorqued frames and intended for ETQ APEX and ETQ VORTEX frames. Confirm which plate maps to ETQ APEX before publishing a model-specific fitment claim.' },
+  { id: 'vortex-stealth', collection: 'bikes', name: 'ETQ VORTEX', image: 'assets/vortex-17-14-new.jpg', alt: 'ETQ VORTEX electric dirt bike with 17/14 wheel setup', price: 1499.99, color: '#17191d', mark: 'V', stock: 5, conversionSpec: '⚡ 6000W PEAK • 🔋 72V 25Ah • 🛞 17"/14" • 📏 31.9" SEAT', tagline: 'Unleashed 6000W high-torque domination built for aggressive off-road terrain and max power delivery.', microSubhead: 'Raw power, full-size frame, and peak terrain control.', riderFit: 'Optimized for riders 5\'9"–6\'5"', specSummary: ['⚡ 6000W PEAK', '🔋 72V 25Ah', '🛞 17"/14"', '📏 31.9" SEAT'], description: 'Unleashed 6000W high-torque domination built for aggressive off-road terrain and max power delivery.', specs: ['Range', 'Up to 50 miles'], detail: 'Motor 6 kW', range: 'Up to 50 miles (approx. 80 km) per charge', rangeNote: 'Estimated range; terrain, rider weight, speed, temperature, and riding mode affect battery range.', peakPower: 'Up to 6,000W peak', battery: '72V 25Ah lithium-ion', topSpeed: 'Up to 53 mph', chargeTime: 'Approximately 7–8 hours', seatHeight: '31.9"', recommendedHeight: '5\'9"–6\'5"', maxRiderWeight: '287 lb', wheels: '17" / 14" wheels', warranty: '1-year limited warranty', bestFor: ['Aggressive off-road riding', 'Trail riding', 'Tall riders'], riderFitGuidance: 'A full-size, high-torque choice for riders in the listed height range and riders who want more off-road capability. Shorter or compact riders may find ETQ APEX easier to manage.', useCases: ['Urban riding: possible, but the full-size setup favors open riding.', 'Commuting: use only where the bike and route are permitted.', 'Recreation: suited to high-output recreational riding.', 'Trails: intended for stronger trail performance.', 'Off-road: the better fit for aggressive off-road use.'], accessoryFitment: 'The storefront describes the vented plates as custom-molded for ETorqued frames and intended for ETQ APEX and ETQ VORTEX frames. Confirm which plate maps to ETQ VORTEX before publishing a model-specific fitment claim.' },
   { id: 'apex-vented-front-plate', collection: 'accessories', name: '"Apex" VENTED PLATE', image: 'assets/apex-vented-plate-front.png', gallery: ['assets/apex-vented-plate-front.png', 'assets/apex-vented-plate-side.png', 'assets/apex-vented-plate-angle.png'], alt: 'Gloss black Apex vented front plate', price: 22.99, color: '#242424', mark: 'A', stock: 8, description: 'High-gloss black cosmetic front plate with angular upper shield and lower mesh ventilation grid. Snap-on alternative to standard ODI plates.', features: ['High-gloss black cosmetic front plate', 'Angular upper shield with lower mesh ventilation grid', 'Snap-on alternative to standard ODI plates'], specs: ['Material', 'Gloss black plastic'], detail: 'Apex fitment' },
   { id: 'vortex-vented-front-plate', collection: 'accessories', name: '"Vortex" VENTED PLATE', image: 'assets/vortex-vented-plate-front.png', gallery: ['assets/vortex-vented-plate-front.png', 'assets/vortex-vented-plate-side.png', 'assets/vortex-vented-plate-angle.png'], alt: 'Gloss black Vortex vented front plate', price: 22.99, color: '#242424', mark: 'V', stock: 8, description: 'High-gloss black front plate featuring a curved top contour and wide diamond mesh grill. Lightweight snap-on aesthetic upgrade.', features: ['Curved top contour', 'Wide diamond mesh grill', 'Lightweight snap-on aesthetic upgrade'], specs: ['Material', 'Gloss black plastic'], detail: 'Vortex fitment' }
 ];
@@ -125,7 +125,11 @@ let previousBodyOverflow = '';
 let selectedVariant = { frame: 'Stealth Black', battery: '60V Standard' };
 const variantPricing = { '60V Standard': 0 };
 const variantColors = { 'Stealth Black': '#17191d' };
-const regionDelivery = { 'United Kingdom (UK)': '3–5 Business Days', 'United States (USA)': '5–8 Business Days', 'European Union (EU)': '3–6 Business Days' };
+// EU-only storefront: one delivery estimate for all 27 member states.
+const euDeliveryEstimate = '3–6 Business Days';
+const euCountries = ['Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', 'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden'];
+const countryDelivery = Object.fromEntries(euCountries.map((country) => [country, euDeliveryEstimate]));
+const regionDelivery = { ...countryDelivery, 'United Kingdom (UK)': euDeliveryEstimate, 'United States (USA)': euDeliveryEstimate, 'European Union (EU)': euDeliveryEstimate };
 const faqModal = document.querySelector('#faqModal');
 const supportModal = document.querySelector('#supportModal');
 const topNav = document.querySelector('.header-nav');
@@ -164,15 +168,15 @@ const legalPages = [
     ['Draft status and acceptance', '<p>This draft is for review and is not a final statement of the business’s legal terms. By using the storefront or submitting an order request, a visitor should agree to the final terms published by the business, subject to any mandatory consumer rights that apply to them.</p>'],
     ['Eligibility and acceptable use', '<p>You must be able to enter a binding agreement under the rules that apply to you. Use the storefront lawfully, provide accurate order information, do not interfere with its operation, and do not misuse product, payment, or support systems.</p>'],
     ['Orders, pricing, and payment', '<p>Product availability, descriptions, and prices are shown on the storefront and may change before an order is accepted. An order is not final until ETorqued confirms it. The business should confirm currency, taxes, payment timing, invoice handling, and how pricing errors are corrected before publication.</p>'],
-    ['Delivery', '<p>Shipping regions, processing estimates, delivery estimates, and delivery limitations are described in the <a href="#legal/shipping-policy">Shipping Policy</a>. Delivery estimates are not guarantees unless the final business terms expressly say so. Customers must provide accurate delivery information and cooperate with carrier or customs requests.</p>'],
+    ['Delivery', '<p>EU-only shipping, processing estimates, delivery estimates, and delivery limitations are described in the <a href="#legal/shipping-policy">Shipping Policy</a>. Delivery estimates are not guarantees unless the final business terms expressly say so. Customers must provide accurate delivery information and cooperate with carrier or customs requests.</p>'],
     ['Product use and safety', '<p>Follow the product instructions, use appropriate protective equipment, inspect the bike before riding, and obey applicable road, land-access, age, and safety rules. Products must not be modified or used in a way that creates an unreasonable risk or defeats safety features. Refer to the supplied product documentation for model-specific guidance.</p>'],
     ['Intellectual property', '<p>ETorqued branding, product content, text, graphics, and storefront design belong to the business or its licensors unless stated otherwise. You may use the storefront for personal shopping purposes but may not copy, republish, or commercially exploit its content without permission.</p>'],
     ['Liability and disputes', '<p>The final terms must explain any permitted limits of liability, exclusions, complaint route, governing law, and dispute process without removing mandatory consumer protections. The business should complete those jurisdiction-specific details with qualified advice.</p>'],
     ['Changes to these terms', '<p>ETorqued may update these terms by publishing a revised version with a new date. Material changes should be communicated in a way appropriate to the relationship and applicable rules.</p>']
   ]},
   { slug: 'warranty-policy', title: 'Warranty Policy', description: 'Draft ETorqued Warranty Policy covering battery and motor coverage, exclusions, and claims.', sections: [
-    ['What is covered', '<p>The current storefront states that battery and motor components have 12-month coverage. The final policy must confirm the covered parts, whether coverage applies to the original purchaser only, and the remedy available after a valid claim.</p>'],
-    ['Warranty duration', '<p>Unless the business confirms a different written promise for a specific product, this draft records the existing storefront statement of 12-month coverage for battery and motor components. The coverage start date and any mandatory statutory rights must be confirmed before publication.</p>'],
+    ['What is covered', '<p>The storefront states a 1-year limited warranty on ETORQUED bikes. The final policy must confirm the covered parts, whether coverage applies to the original purchaser only, and the remedy available after a valid claim.</p>'],
+    ['Warranty duration', '<p>Unless the business confirms a different written promise for a specific product, this draft records the storefront statement of a 1-year limited warranty. The coverage start date and any mandatory statutory rights must be confirmed before publication.</p>'],
     ['Exclusions', '<p>Potential exclusions may include normal wear, cosmetic damage, misuse, accident damage, water or environmental damage outside product instructions, unauthorized modification, incorrect assembly, unsuitable maintenance, and use outside the supplied guidance. The final exclusions must be specific, fair, and legally reviewed.</p>'],
     ['Customer responsibilities', '<p>Use the bike as instructed, complete reasonable care and maintenance, stop using a product that appears unsafe, and keep records of relevant maintenance or communications. Do not attempt a repair that could create further damage unless instructed by ETorqued.</p>'],
     ['How to make a claim', '<p>Email <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a> with your order reference, a description of the issue, photographs or video where useful, and the product serial number if available. Support may request additional information or an inspection before confirming the next step.</p>'],
@@ -187,10 +191,10 @@ const legalPages = [
     ['Non-returnable items', '<p>The business has not confirmed any non-returnable categories. Add only categories that are legally permitted and actually sold, such as a clearly identified personalized or hygiene-sensitive item where applicable.</p>']
   ]},
   { slug: 'shipping-policy', title: 'Shipping Policy', description: 'Draft ETorqued Shipping Policy covering regions, processing, delivery, costs, customs, tracking, and damage.', sections: [
-    ['Regions served', '<p>The current storefront lists shipping to the United Kingdom, United States, and European Union. Availability may depend on the destination, product, carrier, and applicable restrictions; confirm any excluded locations before publication.</p>'],
+    ['Regions served', '<p>ETORQUED ships exclusively within the European Union, covering all 27 EU member states. Orders from outside the EU, including the United Kingdom and United States, are not accepted. Availability may depend on the destination, product, carrier, and applicable restrictions; confirm any excluded locations before publication.</p>'],
     ['Processing times', '<p>The storefront states that orders are prepared for dispatch within 2–4 business days. This is a current estimate, not a guarantee. The business should define when processing starts, whether weekends and holidays are excluded, and how preorders or unavailable items are handled.</p>'],
-    ['Estimated delivery', '<p>Current estimates are 3–5 business days in the UK, 5–8 in the USA, and 3–6 across the EU. These estimates begin after dispatch and can vary by destination, carrier, customs, weather, and other events outside reasonable control.</p>'],
-    ['Shipping costs', '<p>The storefront currently describes complimentary or free shipping to the UK, USA, and EU. The business should confirm whether this applies to every product and destination, and whether any surcharge is disclosed at checkout.</p>'],
+    ['Estimated delivery', '<p>Current estimates are 3–6 business days across the EU. These estimates begin after dispatch and can vary by destination, carrier, customs, weather, and other events outside reasonable control.</p>'],
+    ['Shipping costs', '<p>The storefront currently describes complimentary or free shipping to every EU member state. The business should confirm whether this applies to every product and destination, and whether any surcharge is disclosed at checkout.</p>'],
     ['Customs, VAT, and import charges', '<p>The business has not confirmed whether prices include VAT or whether customers may owe import duties, brokerage, or local taxes. Add a clear destination-specific explanation before publication rather than promising that charges are included.</p>'],
     ['Tracking and delivery issues', '<p>Where tracking is available, ETorqued or its carrier should provide tracking details after dispatch. If tracking does not update or a parcel is late, contact <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a> with the order reference and destination.</p>'],
     ['Damaged deliveries', '<p>Inspect the package when practical and photograph visible damage before opening. Report damage promptly with photographs, packaging details, and the order reference. Keep the item and packaging available while the carrier or support team investigates.</p>']
@@ -198,11 +202,11 @@ const legalPages = [
   { slug: 'contact-us', title: 'Contact Us', description: 'Draft ETorqued contact information for customer support, order questions, and product help.', sections: [
     ['Customer support', '<p>Email <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a> for product, delivery, invoice, warranty, returns, or order questions.</p>'],
     ['Response expectations', '<p>The storefront does not currently promise a response time. The business should add a realistic support-hours statement and response target before publication. We will aim to respond as soon as reasonably possible.</p>'],
-    ['Order support instructions', '<p>Include your order reference, full name, delivery region, and a concise description of the issue. For damaged or faulty items, include clear photographs and keep the packaging until the support team advises.</p>'],
+    ['Order support instructions', '<p>Include your order reference, full name, delivery country, and a concise description of the issue. For damaged or faulty items, include clear photographs and keep the packaging until the support team advises.</p>'],
     ['Contact form', '<p>For a direct request, use <a class="legal-contact-link" href="mailto:etorqued@gmail.com?subject=ETORQUED%20support%20request">Email customer support →</a>. A server-backed contact form can be added once the business confirms its mail handling and privacy process.</p>']
   ]},
   { slug: 'company-information', title: 'Company Information', description: 'Draft ETorqued company information page with placeholders for required business details.', sections: [
-    ['Business identity', '<dl class="legal-details"><div><dt>Legal business name</dt><dd>[ADD REGISTERED COMPANY NAME]</dd></div><div><dt>Trading name</dt><dd>ETORQUED</dd></div><div><dt>Registered address</dt><dd>[ADD REGISTERED ADDRESS]</dd></div><div><dt>Company registration number</dt><dd>[ADD COMPANY REGISTRATION NUMBER]</dd></div><div><dt>VAT number</dt><dd>[ADD VAT NUMBER OR CONFIRM NOT APPLICABLE]</dd></div><div><dt>Support email</dt><dd><a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a></dd></div><div><dt>Operating region</dt><dd>[ADD OPERATING REGION]</dd></div></dl>'],
+    ['Business identity', '<dl class="legal-details"><div><dt>Legal business name</dt><dd>[ADD REGISTERED COMPANY NAME]</dd></div><div><dt>Trading name</dt><dd>ETORQUED</dd></div><div><dt>Registered address</dt><dd>[ADD REGISTERED ADDRESS]</dd></div><div><dt>Company registration number</dt><dd>[ADD COMPANY REGISTRATION NUMBER]</dd></div><div><dt>VAT number</dt><dd>[ADD VAT NUMBER OR CONFIRM NOT APPLICABLE]</dd></div><div><dt>Support email</dt><dd><a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a></dd></div><div><dt>Operating region</dt><dd>European Union (EU-only shipping)</dd></div></dl>'],
     ['Customer support', '<p>For product and order support, email <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a>. The business should add its confirmed support hours and response target before publication.</p>'],
     ['Publication note', '<p>This page intentionally uses placeholders where the existing storefront does not provide verified company information. Replace every bracketed item and have the complete legal information reviewed before publishing.</p>']
   ]}
@@ -368,7 +372,7 @@ function handleLegalRoute() {
     currentLegalSlug = '';
     closeLegalPage();
     document.title = 'ETORQUED — High-performance electric dirt bikes';
-    document.querySelector('meta[name="description"]')?.setAttribute('content', 'ETORQUED high-performance electric dirt bikes — from €899,99. Instant electric torque, 12-month battery and motor coverage, free UK / USA / EU shipping.');
+    document.querySelector('meta[name="description"]')?.setAttribute('content', 'ETORQUED high-performance electric dirt bikes — from €899,99. Instant electric torque, 1-year limited warranty, free EU-wide shipping.');
   }
 }
 
@@ -425,7 +429,7 @@ function returnHome(event) {
     legalPage.hidden = true;
     currentLegalSlug = '';
     document.title = 'ETORQUED — High-performance electric dirt bikes';
-    document.querySelector('meta[name="description"]')?.setAttribute('content', 'ETORQUED high-performance electric dirt bikes — from €899,99. Instant electric torque, 12-month battery and motor coverage, free UK / USA / EU shipping.');
+    document.querySelector('meta[name="description"]')?.setAttribute('content', 'ETORQUED high-performance electric dirt bikes — from €899,99. Instant electric torque, 1-year limited warranty, free EU-wide shipping.');
   }
   scrollLockCount = 0;
   document.body.style.position = previousBodyPosition;
@@ -506,14 +510,13 @@ function renderBikeDetails(product) {
   if (product.collection !== 'bikes') return;
 
   document.querySelector('#previewRiderFitGuidance').textContent = product.riderFitGuidance;
-  document.querySelector('#previewRange').textContent = `${product.range}; maximum range: [CONFIRM MAXIMUM RANGE]`;
+  document.querySelector('#previewRange').textContent = product.range;
   document.querySelector('#previewRangeNote').textContent = product.rangeNote;
   document.querySelector('#previewFitment').textContent = product.accessoryFitment;
   bestFor.innerHTML = product.bestFor.map((item) => `<span>${escapeHtml(item)}</span>`).join('');
   useCases.innerHTML = product.useCases.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
   const specRows = [
     ['Peak power', product.peakPower],
-    ['Continuous power', product.continuousPower],
     ['Battery', product.battery],
     ['Estimated top speed', product.topSpeed],
     ['Charge time', product.chargeTime],
@@ -522,15 +525,14 @@ function renderBikeDetails(product) {
     ['Recommended rider height', product.recommendedHeight],
     ['Maximum rider / payload', product.maxRiderWeight],
     ['Wheels', product.wheels],
-    ['Tires', product.tires],
     ['Warranty', product.warranty]
   ];
-  bikeSpecs.innerHTML = specRows.map(([label, value]) => `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></li>`).join('');
-  document.querySelector('#previewDelivery').textContent = 'Delivery estimate: UK 3–5 · USA 5–8 · EU 3–6 business days';
+  bikeSpecs.innerHTML = specRows.filter(([, value]) => value).map(([label, value]) => `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></li>`).join('');
+  document.querySelector('#previewDelivery').textContent = 'Free EU-wide shipping · 3–6 business days';
 }
 
-function updateDeliveryBadge(region = '') {
-  const delivery = regionDelivery[region] || '3–5 Business Days';
+function updateDeliveryBadge(country = '') {
+  const delivery = regionDelivery[country] || euDeliveryEstimate;
   const text = `Estimated Delivery: ${delivery}`;
   const previewDelivery = document.querySelector('#previewDelivery');
   if (previewDelivery) previewDelivery.textContent = text;
@@ -565,7 +567,7 @@ function openPreview(product) {
   if (product.collection !== 'bikes') {
     const specs = product.features || product.specSummary || [`${product.specs[0]}: ${product.specs[1]}`, `Detail: ${product.detail}`];
     document.querySelector('#previewSpecs').innerHTML = specs.map((spec) => `<li><span>${escapeHtml(spec)}</span></li>`).join('');
-    document.querySelector('#previewDelivery').textContent = 'Delivery estimate: UK 3–5 · USA 5–8 · EU 3–6 business days';
+    document.querySelector('#previewDelivery').textContent = 'Free EU-wide shipping · 3–6 business days';
   }
   previewQuantity.value = selectedQuantity;
   previewArt.style.setProperty('--art', product.color);
@@ -718,7 +720,7 @@ function openCheckout() {
   checkoutItems.innerHTML = cart.map((item) => `<div class="checkout-line"><span>${escapeHtml(item.product.name)}<small>${escapeHtml(getVariantLabel(item.variant))} × ${escapeHtml(item.quantity)}</small></span><strong>${euro(item.unitPrice * item.quantity)}</strong></div>`).join('');
   document.querySelector('#summaryTotal').textContent = euro(cartTotal());
   document.querySelector('#orderReference').textContent = currentReference;
-  updateDeliveryBadge(document.querySelector('#deliveryRegion').value);
+  updateDeliveryBadge(document.querySelector('#deliveryCountry')?.value || '');
   orderForm.hidden = false;
   confirmation.hidden = true;
   rememberFocus();
@@ -834,7 +836,7 @@ document.querySelector('#previewCompareLink').addEventListener('click', () => {
   closePreview();
   window.setTimeout(() => openPreview(otherBike), 720);
 });
-document.querySelector('#deliveryRegion').addEventListener('change', (event) => updateDeliveryBadge(event.target.value));
+document.querySelector('#deliveryCountry')?.addEventListener('change', (event) => updateDeliveryBadge(event.target.value));
 previewModal.addEventListener('click', (event) => { if (event.target === previewModal) closePreview(); });
 cartModal.addEventListener('click', (event) => { if (event.target === cartModal) closeCart(); });
 document.querySelector('#closeModal').addEventListener('click', closeCheckout);
@@ -958,17 +960,18 @@ orderForm.addEventListener('submit', async (event) => {
   const submitButton = orderForm.querySelector('button[type="submit"]');
   const orderStatus = document.querySelector('#orderStatus');
   const formData = Object.fromEntries(new FormData(orderForm));
-  const order = { ...formData, delivery: { region: formData.region, fullName: formData.fullName, email: formData.email, phone: formData.phone, address: formData.address, postcode: formData.postcode }, reference: currentReference, items: cart.map((item) => ({ product: item.product.name, variant: getVariantLabel(item.variant), quantity: item.quantity, total: item.unitPrice * item.quantity })), total: cartTotal(), createdAt: new Date().toISOString() };
+  const order = { ...formData, delivery: { country: formData.country, fullName: formData.fullName, email: formData.email, phone: formData.phone, address: formData.address, postcode: formData.postcode }, reference: currentReference, items: cart.map((item) => ({ product: item.product.name, variant: getVariantLabel(item.variant), quantity: item.quantity, total: item.unitPrice * item.quantity })), total: cartTotal(), createdAt: new Date().toISOString() };
   const orders = JSON.parse(localStorage.getItem('etorqued-orders') || '[]');
   orders.push(order);
   localStorage.setItem('etorqued-orders', JSON.stringify(orders));
   const itemCount = cart.length;
-  const deliveryEstimate = regionDelivery[formData.region] || '3–5 Business Days';
+  const deliveryEstimate = regionDelivery[formData.country] || euDeliveryEstimate;
   const sharedParams = {
     order_reference: currentReference,
     order_items: order.items.map((item) => `${item.product} — ${item.variant} × ${item.quantity} — ${euro(item.total)}`).join('\n'),
     order_total: euro(order.total),
-    delivery_region: formData.region,
+    // Key stays "delivery_region" because the existing email template uses it.
+    delivery_region: formData.country,
     delivery_estimate: deliveryEstimate,
     customer_name: formData.fullName,
     customer_email: formData.email,
@@ -1021,7 +1024,7 @@ orderForm.addEventListener('submit', async (event) => {
     fallback.className = 'form-status';
     const link = document.createElement('a');
     const subject = encodeURIComponent(`Order ${currentReference}`);
-    const body = encodeURIComponent(`Reference: ${currentReference}\nTotal: ${euro(order.total)}\n\n${sharedParams.order_items}\n\nName: ${formData.fullName}\nDeliver to: ${formData.address}, ${formData.postcode}`);
+    const body = encodeURIComponent(`Reference: ${currentReference}\nTotal: ${euro(order.total)}\n\n${sharedParams.order_items}\n\nName: ${formData.fullName}\nDeliver to: ${formData.address}, ${formData.postcode}, ${formData.country}`);
     link.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
     link.textContent = SUPPORT_EMAIL;
     fallback.append('An automatic copy of this order could not be sent. Email us at ', link, ` and quote your reference ${currentReference} so we can raise your invoice.`);
