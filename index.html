@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ETORQUED high-performance electric dirt bikes — from €899,99. Instant electric torque, 12-month battery and motor coverage, free UK / USA / EU shipping.">
+  <meta name="theme-color" content="#0b0c0e">
+  <title>ETORQUED — High-performance electric dirt bikes</title>
+
+  <!-- Launch: if you register a domain other than etorqued.com, change it in the
+       canonical, og:url, og:image, twitter:image and robots.txt/sitemap.xml. -->
+  <link rel="canonical" href="https://etorqued.com/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ETORQUED">
+  <meta property="og:url" content="https://etorqued.com/">
+  <meta property="og:title" content="ETORQUED — High-performance electric dirt bikes">
+  <meta property="og:description" content="From €899,99 — instant electric torque, quiet control and trail-ready performance. Free UK / USA / EU shipping with 12-month battery and motor coverage.">
+  <meta property="og:image" content="https://etorqued.com/assets/hero-bike-front.jpg">
+  <meta property="og:image:alt" content="ETORQUED electric dirt bike shown from the front">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ETORQUED — High-performance electric dirt bikes">
+  <meta name="twitter:description" content="From €899,99 — instant electric torque, quiet control and trail-ready performance. Free UK / USA / EU shipping with 12-month battery and motor coverage.">
+  <meta name="twitter:image" content="https://etorqued.com/assets/hero-bike-front.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="storefront-header">
+    <div class="announcement-bar" role="status">⚡ FREE SHIPPING UK / USA / EU | 12-MONTH BATTERY + MOTOR WARRANTY</div>
+
+  <header class="site-header">
+    <button class="icon-button" type="button" aria-label="Search" id="searchButton">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>
+    </button>
+    <a class="wordmark" href="#top" data-home-link aria-label="ETORQUED home">ETORQUED</a>
+    <div class="header-actions">
+      <button class="icon-button" type="button" aria-label="Account">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25"></circle><path d="M5.5 20c.7-3.2 2.8-5 6.5-5s5.8 1.8 6.5 5"></path></svg>
+      </button>
+      <button class="icon-button bag-button" type="button" aria-label="Open cart" id="bagButton">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8.5h13l-1 12h-11l-1-12Z"></path><path d="M9 9V6.75a3 3 0 0 1 6 0V9"></path></svg>
+        <span class="bag-count" id="bagCount">0</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="header-nav" aria-label="Primary navigation">
+    <a class="header-nav-logo" href="#top" data-home-link aria-label="ETORQUED home">ETORQUED</a>
+    <div class="header-nav-links">
+      <button class="nav-pill" type="button" data-scroll-target="bikes-collection">Bikes</button>
+      <button class="nav-pill" type="button" data-scroll-target="accessories-collection">Accessories</button>
+      <button class="nav-pill" type="button" id="faqButton">FAQ</button>
+      <button class="nav-pill" type="button" id="supportButton">Support</button>
+    </div>
+    <div class="nav-right-actions">
+      <button class="nav-cart-button nav-pill" type="button" id="navBagButton" aria-label="Open shopping bag" aria-expanded="false" aria-controls="cartModal">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8.5h13l-1 12h-11l-1-12Z"></path><path d="M9 9V6.75a3 3 0 0 1 6 0V9"></path></svg>
+        <span>Bag</span><b id="navBagCount" aria-live="polite">0</b>
+      </button>
+      <button class="mobile-menu-toggle" type="button" id="mobileMenuButton" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  </div>
+
+  <main id="top">
+    <section class="hero" data-reveal="hero" aria-labelledby="hero-title">
+      <div class="hero-content">
+        <p class="eyebrow">ETORQUED / High-performance electric dirt bikes</p>
+        <h1 id="hero-title" tabindex="-1">RIDE<br><span>THE EDGE.</span></h1>
+        <p class="hero-subheadline">Instant electric torque, quiet control, and trail-ready performance—without the fuel, fumes, or warm-up.</p>
+        <div class="hero-offer"><span>Starting at</span><strong id="heroStartingPrice">€899,99 EUR</strong></div>
+        <div class="hero-rating" aria-label="Rated 4.9 out of 5 by over 120 verified riders">★★★★★ <span>4.9/5 from 120+ verified riders</span></div>
+        <div class="hero-trust" aria-label="ETorqued buyer assurances"><span>✓ UK / USA / EU shipping</span><span>✓ 12-month battery + motor warranty</span><span>✓ 4.9/5 rider reviews</span></div>
+        <div class="hero-actions"><button class="hero-cta" type="button" data-scroll-target="bikes-collection" aria-label="Shop ETorqued electric dirt bikes">Shop Bikes <span aria-hidden="true">➔</span></button><button class="hero-secondary-cta" type="button" data-scroll-target="compare-models" aria-label="Compare ETorqued electric dirt bike models">Compare Models <span aria-hidden="true">↗</span></button></div>
+      </div>
+      <div class="hero-showcase" aria-label="ETQ APEX performance highlights">
+        <div class="hero-showcase-card">
+          <img class="hero-bike-art product-image" src="assets/hero-bike-front.jpg" alt="ETQ electric dirt bike shown from the front" fetchpriority="high" decoding="async">
+        </div>
+      </div>
+      <button class="hero-scroll-arrow" type="button" id="heroScrollButton" aria-label="Scroll to electric dirt bikes">↓</button>
+    </section>
+
+    <section class="comparison-section" id="compare-models" aria-labelledby="compare-title">
+      <div class="comparison-heading"><div><p class="eyebrow">Choose your ride</p><h2 id="compare-title">Compare Models</h2></div><p>Two ways to go electric.</p></div>
+      <div class="comparison-grid">
+        <article class="comparison-card"><p class="eyebrow">ETQ APEX</p><h3>Agile electric performance</h3><p class="comparison-price" id="compareProPrice">€899,99 EUR</p><p>Lightweight control for instant throttle response and everyday versatility.</p><dl><div><dt>Peak power</dt><dd>3,000W</dd></div><div><dt>Battery</dt><dd>48V 23Ah</dd></div><div><dt>Range</dt><dd>85 km</dd></div><div><dt>Seat height</dt><dd>28.3″</dd></div></dl><button class="comparison-link" type="button" data-scroll-target="bikes-collection" aria-label="Shop ETQ APEX">Shop ETQ APEX <span aria-hidden="true">→</span></button></article>
+        <article class="comparison-card"><p class="eyebrow">ETQ VORTEX</p><h3>Full-size trail power</h3><p class="comparison-price" id="compareBeastPrice">€1.499,99 EUR</p><p>High-torque delivery and a full-size frame for aggressive off-road terrain.</p><dl><div><dt>Peak power</dt><dd>6,000W</dd></div><div><dt>Battery</dt><dd>72V 25Ah</dd></div><div><dt>Range</dt><dd>60 km</dd></div><div><dt>Seat height</dt><dd>31.9″</dd></div></dl><button class="comparison-link" type="button" data-scroll-target="bikes-collection" aria-label="Shop ETQ VORTEX">Shop ETQ VORTEX <span aria-hidden="true">→</span></button></article>
+      </div>
+    </section>
+
+    <section class="shop-section" id="productCatalog" aria-labelledby="shop-title">
+      <div class="collection-block" id="bikes-collection">
+        <div class="section-heading" data-reveal="heading">
+          <h2 id="shop-title">Electric Dirt Bikes</h2>
+          <p>01 — 02</p>
+        </div>
+        <div class="product-grid" id="bikeGrid"></div>
+      </div>
+      <div class="collection-block" id="accessories-collection">
+        <div class="section-heading" data-reveal="heading">
+          <h2 id="accessories-title">Accessories</h2>
+          <p>01 — 02</p>
+        </div>
+        <div class="product-grid" id="accessoryGrid"></div>
+      </div>
+    </section>
+    <section class="reviews-section" id="rider-reviews" aria-labelledby="reviews-title">
+      <div class="reviews-heading"><div><p class="eyebrow">Built for the ride</p><h2 id="reviews-title">Rider Reviews</h2></div><span class="reviews-score">★★★★★ <strong>4.9</strong></span></div>
+      <div class="reviews-grid">
+        <article class="review-card"><div class="review-stars">★★★★★</div><blockquote>“The ETQ APEX feels planted, fast, and completely different from anything I’ve ridden.”</blockquote><p>— Marcus T. <span>✓ Verified buyer</span></p></article>
+        <article class="review-card"><div class="review-stars">★★★★★</div><blockquote>“Delivery was quick and the ETQ VORTEX arrived ready for the trails. Exceptional finish.”</blockquote><p>— Elin R. <span>✓ Verified buyer</span></p></article>
+        <article class="review-card"><div class="review-stars">★★★★★</div><blockquote>“Instant torque out of the corners. The build quality on the ETQ VORTEX is top tier.”</blockquote><p>— Dave K. <span>✓ Verified buyer</span></p></article>
+        <article class="review-card"><div class="review-stars">★★★★★</div><blockquote>“Super clean aesthetic and customer support helped sort my invoice transfer in minutes.”</blockquote><p>— Liam P. <span>✓ Verified buyer</span></p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-main">
+      <div class="footer-brand-block">
+        <a class="footer-wordmark" href="#top" data-home-link aria-label="ETORQUED home">ETORQUED</a>
+        <a class="tiktok-link" href="https://www.tiktok.com/" aria-label="ETorqued on TikTok" target="_blank" rel="noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 4.2c.4 2 1.6 3.2 3.6 3.3v3a7.4 7.4 0 0 1-3.5-1v5.9a5.5 5.5 0 1 1-4.8-5.4v3a2.5 2.5 0 1 0 1.8 2.4V4.2h2.9Z"></path></svg>
+        </a>
+      </div>
+      <nav class="footer-legal" aria-labelledby="footer-legal-title">
+        <h2 id="footer-legal-title">Legal &amp; support</h2>
+        <div class="footer-legal-links">
+          <a href="#legal/privacy-policy">Privacy Policy</a>
+          <a href="#legal/cookie-policy">Cookie Policy</a>
+          <a href="#legal/terms-and-conditions">Terms &amp; Conditions</a>
+          <a href="#legal/warranty-policy">Warranty Policy</a>
+          <a href="#legal/returns-and-refunds">Returns &amp; Refunds</a>
+          <a href="#legal/shipping-policy">Shipping Policy</a>
+          <a href="#legal/contact-us">Contact Us</a>
+          <a href="#legal/company-information">Company Information</a>
+        </div>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026, ETORQUED</p>
+      <div class="footer-links"><a href="#legal/privacy-policy">Privacy Policy</a><a href="#legal/cookie-policy">Cookie Policy</a></div>
+    </div>
+  </footer>
+
+  <div class="cart-toast" id="cartToast" role="status" aria-live="polite" aria-atomic="true" hidden>Item added to Bag</div>
+
+  <div class="legal-overlay" id="legalPage" hidden>
+    <article class="legal-page" role="document" aria-labelledby="legalPageTitle">
+      <header class="legal-page-header">
+        <a class="legal-brand" href="#top" data-home-link aria-label="ETORQUED home">ETORQUED</a>
+        <button class="legal-back" type="button" id="legalBackButton" aria-label="Return to the ETorqued storefront">← <span>Back to storefront</span></button>
+      </header>
+      <div class="legal-page-content">
+        <div class="legal-page-intro">
+          <p class="eyebrow" id="legalPageKicker">ETorqued / Legal</p>
+          <h1 id="legalPageTitle">Privacy Policy</h1>
+          <p class="legal-updated" id="legalPageUpdated">Last updated: 22 September 2026</p>
+          <p class="legal-draft-note">Draft for review. This information is provided for review and should be completed and approved with the business’s qualified legal adviser before publication.</p>
+        </div>
+        <nav class="legal-page-nav" aria-label="Legal and support pages" id="legalPageNav"></nav>
+        <div class="legal-page-body" id="legalPageBody" tabindex="-1"></div>
+      </div>
+    </article>
+  </div>
+
+  <div class="mobile-menu-overlay" id="mobileMenu" hidden>
+    <nav class="mobile-menu-panel" aria-label="Mobile navigation">
+      <button class="mobile-menu-link" type="button" data-scroll-target="bikes-collection">Bikes</button>
+      <button class="mobile-menu-link" type="button" data-scroll-target="accessories-collection">Accessories</button>
+      <button class="mobile-menu-link" type="button" id="mobileFaqButton">FAQ</button>
+      <button class="mobile-menu-link" type="button" id="mobileSupportButton">Support</button>
+    </nav>
+  </div>
+
+  <div class="modal-overlay info-overlay" id="faqModal" hidden>
+    <section class="info-modal full-info-page" role="dialog" aria-modal="true" aria-labelledby="faqTitle">
+      <header class="info-page-header"><div><a class="info-page-brand" href="#top" data-home-link aria-label="ETORQUED home">ETORQUED</a><p class="eyebrow">ETorqued / Customer care</p><h2 id="faqTitle">Frequently Asked Questions</h2></div><button class="modal-close" type="button" aria-label="Close FAQ" data-close-info="faqModal">✕ <span>Close</span></button></header>
+      <div class="info-modal-content faq-page-content">
+        <p class="info-page-intro">Everything you need to know before your next ride.</p>
+        <div class="faq-category"><p class="category-label">01 / Shipping</p><div class="info-accordion"><details><summary>Where do you ship? <span>+</span></summary><div class="faq-answer"><p>We ship to the UK, USA, and EU with fast dispatch and complimentary delivery.</p></div></details><details><summary>When will my order arrive? <span>+</span></summary><div class="faq-answer"><p>Estimated delivery is 3–5 business days in the UK, 5–8 in the USA, and 3–6 across the EU.</p></div></details></div></div>
+        <div class="faq-category"><p class="category-label">02 / Payments</p><div class="info-accordion"><details><summary>How do payments work? <span>+</span></summary><div class="faq-answer"><p>Choose Revolut, direct bank transfer, or receive an invoice link upon checkout. Every order is confirmed personally by our team.</p></div></details></div></div>
+        <div class="faq-category"><p class="category-label">03 / Warranty</p><div class="info-accordion"><details><summary>What is the warranty policy? <span>+</span></summary><div class="faq-answer"><p>We provide 12-month coverage on battery and motor components, with our support team available throughout ownership.</p></div></details></div></div>
+        <div class="faq-category"><p class="category-label">04 / Fitment</p><div class="info-accordion"><details><summary>Will accessories fit ETQ APEX and ETQ VORTEX models? <span>+</span></summary><div class="faq-answer"><p>Yes. All plates are custom-molded for ETorqued frames and designed for a precise fit.</p></div></details></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-overlay info-overlay" id="supportModal" hidden>
+    <section class="info-modal full-info-page support-modal" role="dialog" aria-modal="true" aria-labelledby="supportTitle">
+      <header class="info-page-header"><div><a class="info-page-brand" href="#top" data-home-link aria-label="ETORQUED home">ETORQUED</a><p class="eyebrow">ETorqued / We're here to help</p><h2 id="supportTitle">Customer Support</h2></div><button class="modal-close" type="button" aria-label="Close support" data-close-info="supportModal">✕ <span>Close</span></button></header>
+      <div class="info-modal-content support-page-content">
+        <p class="info-page-intro">Questions about fitment, delivery, or your order? Connect with our team and we’ll get back to you quickly.</p>
+        <div class="support-hub-grid"><a class="support-card" href="mailto:etorqued@gmail.com"><span class="support-card-label">Direct email</span><strong>etorqued@gmail.com</strong><span>For product and order questions →</span></a><div class="support-card"><span class="support-card-label">Payment assistance</span><strong>Revolut / Bank transfer</strong><span>We’ll guide you through your invoice →</span></div><div class="support-card"><span class="support-card-label">Dispatch times</span><strong>3–5 business days</strong><span>UK, USA and EU delivery estimates</span></div></div>
+        <form class="inquiry-form" id="supportInquiryForm"><p class="category-label">Send an inquiry</p><div class="inquiry-fields"><label>Name<input name="supportName" type="text" required placeholder="Your name"></label><label>Email<input name="supportEmail" type="email" required placeholder="you@example.com"></label><label class="full-width">How can we help?<textarea name="supportMessage" rows="4" required placeholder="Tell us what you need"></textarea></label></div><p class="form-status" id="inquiryStatus" role="status" aria-live="polite"></p><button class="submit-button" type="submit">Send Inquiry <span>→</span></button><label class="form-honeypot" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label></form>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-overlay" id="cartModal" hidden>    <section class="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+      <button class="modal-close" type="button" aria-label="Close cart" id="closeCart">×</button>
+      <div class="cart-drawer-content">
+        <div class="cart-header"><p class="eyebrow">Your selection</p><h2 id="cartTitle">Cart</h2></div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+          <div class="cart-subtotal">
+            <span>Subtotal</span><strong id="cartSubtotal">€0,00 EUR</strong>
+          </div>
+          <button class="submit-button" type="button" id="proceedToCheckout">Proceed to Checkout <span>→</span></button>
+          <div class="security-badges" aria-label="Accepted payment methods and secure checkout"><strong>Secure checkout</strong><div class="security-badge-list"><span class="security-badge"><svg viewBox="0 0 20 14" aria-hidden="true"><path d="M10 2.5c2.7 0 4.8 1.7 5.7 3.5-.9 1.8-3 3.5-5.7 3.5S5.2 7.8 4.3 6c.9-1.8 3-3.5 5.7-3.5Z"></path><circle cx="10" cy="6" r="1.6"></circle></svg> Apple Pay</span><span class="security-badge"><svg viewBox="0 0 20 14" aria-hidden="true"><path d="M3 3.5h14v7H3z"></path><path d="M5 6h10M7 9h2"></path></svg> Google Pay</span><span class="security-badge">VISA</span><span class="security-badge security-badge--mc">●● Mastercard</span><span class="security-badge security-badge--lock"><svg viewBox="0 0 16 18" aria-hidden="true"><rect x="2.5" y="7" width="11" height="9" rx="1.5"></rect><path d="M5 7V5a3 3 0 0 1 6 0v2"></path></svg> 256-Bit Encrypted</span></div><p class="guarantee-badge">🛡️ 30-Day Money-Back Guarantee &amp; Free Returns</p></div>
+          <div class="trust-badges"><strong>Guaranteed Safe Checkout</strong><div aria-label="Visa, Mastercard, Revolut, SEPA and buyer protection"><span class="payment-icon"><svg class="badge-svg" viewBox="0 0 20 12" aria-hidden="true"><rect x=".5" y=".5" width="19" height="11" rx="2"></rect></svg> VISA</span><span class="payment-icon payment-icon--mc"><svg class="badge-svg" viewBox="0 0 20 12" aria-hidden="true"><circle cx="8" cy="6" r="4"></circle><circle cx="12" cy="6" r="4"></circle></svg> MC</span><span class="payment-icon"><svg class="badge-svg" viewBox="0 0 20 12" aria-hidden="true"><path d="M3 6h14M10 2l4 4-4 4"></path></svg> REV</span><span class="payment-icon"><svg class="badge-svg" viewBox="0 0 20 12" aria-hidden="true"><path d="M2 3h16v7H2zM2 5h16"></path></svg> SEPA</span><span class="buyer-protection"><svg class="badge-svg" viewBox="0 0 14 16" aria-hidden="true"><path d="M7 1 12 3v4c0 3.5-2.1 6-5 8-2.9-2-5-4.5-5-8V3l5-2Z"></path></svg> 100% Buyer Protection</span></div></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-overlay" id="productPreviewModal" hidden>
+    <section class="product-preview-modal" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+      <header class="modal-header">
+        <a class="wordmark" href="#top" data-home-link aria-label="ETORQUED home">ETORQUED</a>
+        <span class="modal-step">Product Details</span>
+        <button class="modal-close" type="button" aria-label="Close product preview" id="closePreview">✕ <span>Close</span></button>
+      </header>
+      <div class="preview-page-content">
+        <div class="preview-gallery">
+          <div class="preview-main product-visual" aria-busy="false"><div class="product-art" id="previewArt" data-mark=""></div><span class="image-zoom-hint">Hover to zoom</span></div>
+          <div class="preview-thumbnails" id="previewThumbnails" aria-label="Product thumbnails"></div>
+        </div>
+        <div class="preview-details">
+          <p class="eyebrow">Electric dirt bike / 2026</p>
+          <div class="badge-row"><span class="product-badge">Performance Series</span><span class="stock-badge" id="previewStock">Catalog availability</span></div>
+          <h2 id="previewTitle">Selected item</h2>
+          <p class="preview-price" id="previewPrice">€0,00 EUR</p>
+          <p class="preview-description" id="previewDescription"></p>
+          <p class="preview-micro-subhead" id="previewMicroSubhead" hidden></p>
+          <p class="preview-rider-fit" id="previewRiderFit" hidden></p>
+          <div class="delivery-badge" id="previewDelivery">Estimated Delivery: 3–5 Business Days</div>
+          <div class="preview-accordions"><details open><summary>Specifications <span>+</span></summary><ul class="preview-specs" id="previewSpecs"></ul></details><details><summary>Shipping Info <span>+</span></summary><p>Free shipping to the UK, USA and EU. Your order is prepared for dispatch within 2–4 business days.</p></details></div>
+          <div class="quantity-control" aria-label="Quantity"><span>Quantity</span><div class="quantity-stepper"><button type="button" aria-label="Decrease quantity" id="decreaseQuantity">−</button><output id="previewQuantity">1</output><button type="button" aria-label="Increase quantity" id="increaseQuantity">+</button></div></div>
+          <button class="submit-button preview-add-button" type="button" id="addToCartButton">Add to Cart <span>→</span></button>
+          <div class="guarantee-card"><strong>30-Day Money-Back Guarantee</strong><span>Ride it with confidence. Returns accepted within 30 days.</span></div>
+          <div class="preview-bike-details" id="previewBikeDetails" hidden>
+            <section class="preview-detail-section" aria-labelledby="previewBestForTitle"><h3 id="previewBestForTitle">Best for</h3><div class="preview-chip-list" id="previewBestFor"></div></section>
+            <section class="preview-detail-section" aria-labelledby="previewRiderFitTitle"><h3 id="previewRiderFitTitle">Rider fit</h3><p id="previewRiderFitGuidance"></p></section>
+            <section class="preview-detail-section" aria-labelledby="previewUseCasesTitle"><h3 id="previewUseCasesTitle">Use cases</h3><ul id="previewUseCases"></ul></section>
+            <section class="preview-detail-section" aria-labelledby="previewRangeTitle"><h3 id="previewRangeTitle">Real-world range</h3><p id="previewRange"></p><p class="preview-detail-note" id="previewRangeNote"></p></section>
+            <section class="preview-detail-section" aria-labelledby="previewFitmentTitle"><h3 id="previewFitmentTitle">Accessory fitment</h3><p id="previewFitment"></p></section>
+            <button class="preview-compare-link" type="button" id="previewCompareLink" aria-label="Compare this bike with the other ETorqued model">Compare with the other model <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="checkoutModal" hidden>
+    <section class="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+      <header class="modal-header">
+        <a class="wordmark" href="#top" data-home-link aria-label="ETORQUED home">ETORQUED</a>
+        <span class="modal-step">Checkout — Step 1 of 2</span>
+        <button class="modal-close" type="button" aria-label="Close checkout" id="closeModal">✕ <span>Close</span></button>
+      </header>
+      <div class="checkout-page-content">
+        <div class="modal-intro"><p class="eyebrow">Secure your order</p><h2 id="checkoutTitle">Checkout</h2><p>Complete your delivery details to request your official invoice.</p></div>
+        <div class="checkout-layout">
+          <aside class="checkout-summary"><div class="summary-heading"><h3>Order summary</h3><span class="free-shipping">Free shipping</span></div><div class="checkout-items" id="checkoutItems"></div><div class="summary-total"><span>Subtotal</span><strong id="summaryTotal">€0,00 EUR</strong></div><p class="summary-note">Shipping calculated at €0,00 — complimentary delivery included.</p><p class="summary-reference">Reference <strong id="orderReference">#ET-1001</strong></p><div class="trust-badges checkout-trust"><strong>Guaranteed Safe Checkout</strong><div><span class="payment-icon"><svg class="badge-svg" viewBox="0 0 20 12" aria-hidden="true"><rect x=".5" y=".5" width="19" height="11" rx="2"></rect></svg> VISA</span><span class="payment-icon payment-icon--mc"><svg class="badge-svg" viewBox="0 0 20 12" aria-hidden="true"><circle cx="8" cy="6" r="4"></circle><circle cx="12" cy="6" r="4"></circle></svg> MC</span><span class="payment-icon"><svg class="badge-svg" viewBox="0 0 20 12" aria-hidden="true"><path d="M3 6h14M10 2l4 4-4 4"></path></svg> REV</span><span class="payment-icon"><svg class="badge-svg" viewBox="0 0 20 12" aria-hidden="true"><path d="M2 3h16v7H2zM2 5h16"></path></svg> SEPA</span><span class="buyer-protection"><svg class="badge-svg" viewBox="0 0 14 16" aria-hidden="true"><path d="M7 1 12 3v4c0 3.5-2.1 6-5 8-2.9-2-5-4.5-5-8V3l5-2Z"></path></svg> 100% Buyer Protection</span></div></div></aside>
+          <form id="orderForm"><div class="form-grid"><label>Delivery region<select name="region" id="deliveryRegion" required><option value="" disabled selected>Select region</option><option value="United Kingdom (UK)">UK</option><option value="United States (USA)">USA</option><option value="European Union (EU)">EU</option></select><span class="delivery-badge" id="checkoutDelivery">Estimated Delivery: 3–5 Business Days</span></label><label>Full name<input id="fullName" name="fullName" type="text" autocomplete="name" required placeholder="Your full name"></label><label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label><label>Phone number<input name="phone" type="tel" autocomplete="tel" required placeholder="+44, +1, or +353"></label><label class="full-width">Full address<textarea name="address" rows="3" autocomplete="street-address" required placeholder="Street, City, County/State, Country"></textarea></label><label>Postcode / ZIP code<input name="postcode" type="text" autocomplete="postal-code" required placeholder="Postcode or ZIP code"></label></div><p class="form-status" id="orderStatus" role="status" aria-live="polite"></p><button class="submit-button" type="submit">Submit Order &amp; Request Invoice <span>→</span></button><label class="form-honeypot" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label></form>
+          <div class="security-badges checkout-security" aria-label="Accepted payment methods and secure checkout"><strong>Secure checkout</strong><div class="security-badge-list"><span class="security-badge"><svg viewBox="0 0 20 14" aria-hidden="true"><path d="M10 2.5c2.7 0 4.8 1.7 5.7 3.5-.9 1.8-3 3.5-5.7 3.5S5.2 7.8 4.3 6c.9-1.8 3-3.5 5.7-3.5Z"></path><circle cx="10" cy="6" r="1.6"></circle></svg> Apple Pay</span><span class="security-badge"><svg viewBox="0 0 20 14" aria-hidden="true"><path d="M3 3.5h14v7H3z"></path><path d="M5 6h10M7 9h2"></path></svg> Google Pay</span><span class="security-badge">VISA</span><span class="security-badge security-badge--mc">●● Mastercard</span><span class="security-badge security-badge--lock"><svg viewBox="0 0 16 18" aria-hidden="true"><rect x="2.5" y="7" width="11" height="9" rx="1.5"></rect><path d="M5 7V5a3 3 0 0 1 6 0v2"></path></svg> 256-Bit Encrypted</span></div><p class="guarantee-badge">🛡️ 30-Day Money-Back Guarantee &amp; Free Returns</p></div>
+        </div>
+      </div>
+      <div class="confirmation" id="confirmation" hidden><div class="confirmation-mark">✓</div><p class="eyebrow">Order received</p><h2>Thanks for your order.</h2><p id="confirmationText"></p><button class="submit-button" type="button" id="doneButton">Back to shop <span>→</span></button></div>
+    </section>
+  </div>
+</body>
+</html>

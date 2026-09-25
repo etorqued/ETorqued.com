@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>ETORQUED — Email preview</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 20px 80px; background: #f1f2f4; color: #121417; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.55; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 6px; letter-spacing: .04em; text-transform: uppercase; }
+  .lede { margin: 0 0 28px; color: #4b5158; font-size: .95rem; }
+  .note { background: #fff; border: 1px solid #d9dde2; border-left: 3px solid #121417; border-radius: 6px; padding: 14px 16px; margin: 0 0 32px; font-size: .9rem; color: #33383f; }
+  .note strong { color: #121417; }
+  h2 { font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: #6b7178; margin: 36px 0 10px; font-weight: 700; }
+  .mail { background: #fff; border: 1px solid #d9dde2; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(16,20,26,.05); }
+  .headers { border-bottom: 1px solid #e6e9ed; padding: 14px 18px; font-size: .86rem; }
+  .headers div { display: flex; gap: 10px; padding: 2px 0; }
+  .headers dt { width: 74px; flex: none; color: #6b7178; }
+  .headers dd { margin: 0; }
+  .subject { font-weight: 700; font-size: .98rem; }
+  .body { padding: 20px 18px 22px; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86rem; line-height: 1.7; color: #1b1f24; }
+  .tag { display: inline-block; font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; background: #121417; color: #fff; border-radius: 999px; padding: 3px 10px; margin-left: 8px; vertical-align: 2px; }
+  footer { margin-top: 40px; font-size: .84rem; color: #6b7178; }
+  a { color: #121417; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ETORQUED — Automated email preview</h1>
+  <p class="lede">The three emails the storefront sends, with the same sample order used in testing: <code>#ET-260925-71LU</code>, 1 × ETQ APEX, €899,99 EUR, United Kingdom.</p>
+
+  <p class="note"><strong>How to use this:</strong> the wording below is exactly what the EmailJS templates contain. Paste each body into its template in the EmailJS dashboard (Email Templates → your template → Content), then use the template editor's <em>Test it</em> tab to send yourself a real copy. Anything in the body is plain text — no HTML — so it arrives looking like a normal, personal email rather than a marketing blast.</p>
+
+  <h2>1 — Order email, your copy <span class="tag">sent to you</span></h2>
+  <div class="mail">
+    <div class="headers">
+      <div><dt>To</dt><dd>etorqued@gmail.com</dd></div>
+      <div><dt>Reply-To</dt><dd>tester@example.com <span style="color:#6b7178">— hit Reply and you're answering the customer</span></dd></div>
+      <div><dt>Subject</dt><dd class="subject">New order #ET-260925-71LU — €899,99 EUR</dd></div>
+    </div>
+    <div class="body">A new order was placed on the storefront. The fulfilment details are below.
+
+Order reference: #ET-260925-71LU
+Order total: €899,99 EUR
+
+Items
+-----
+ETQ APEX — Stealth Black / 48V 23Ah × 1 — €899,99 EUR
+
+Customer
+--------
+Test Rider
+tester@example.com
++44 7700 900000
+
+Delivery
+--------
+12 Test Lane, Bristol, UK
+BS1 1AA
+Region: United Kingdom (UK)
+Estimated delivery: 3–5 Business Days
+
+Reply to this email to reach Test Rider, raise the invoice, and confirm the delivery window.
+
+Support: etorqued@gmail.com</div>
+  </div>
+
+  <h2>2 — Order email, the customer's copy <span class="tag">sent to them</span></h2>
+  <div class="mail">
+    <div class="headers">
+      <div><dt>To</dt><dd>tester@example.com</dd></div>
+      <div><dt>Reply-To</dt><dd>etorqued@gmail.com <span style="color:#6b7178">— they reply straight to you</span></dd></div>
+      <div><dt>Subject</dt><dd class="subject">Your ETORQUED order #ET-260925-71LU</dd></div>
+    </div>
+    <div class="body">Thanks for your order — here is a copy of what we received.
+
+Order reference: #ET-260925-71LU
+Order total: €899,99 EUR
+
+Items
+-----
+ETQ APEX — Stealth Black / 48V 23Ah × 1 — €899,99 EUR
+
+Customer
+--------
+Test Rider
+tester@example.com
++44 7700 900000
+
+Delivery
+--------
+12 Test Lane, Bristol, UK
+BS1 1AA
+Region: United Kingdom (UK)
+Estimated delivery: 3–5 Business Days
+
+Next: we email your invoice and payment details, then confirm your delivery window.
+
+Support: etorqued@gmail.com</div>
+  </div>
+
+  <h2>3 — Support inquiry <span class="tag">sent to you</span></h2>
+  <div class="mail">
+    <div class="headers">
+      <div><dt>To</dt><dd>etorqued@gmail.com</dd></div>
+      <div><dt>Reply-To</dt><dd>nadia@example.com</dd></div>
+      <div><dt>Subject</dt><dd class="subject">Support inquiry from Nadia K.</dd></div>
+    </div>
+    <div class="body">New support inquiry from Nadia K. &lt;nadia@example.com&gt;
+
+Hi — I ordered the ETQ VORTEX last week and haven't received my invoice yet. Could you check on it?
+
+—
+Submitted: Fri, 25 Sep 2026 09:14:22 GMT
+Reply directly to this email to answer Nadia K.</div>
+  </div>
+
+  <footer>Both order emails come from one template — the site sends it twice with different recipients, so if you change the wording, change it once. Full setup steps: <code>EMAIL-SETUP.md</code>.</footer>
+</div>
+</body>
+</html>
