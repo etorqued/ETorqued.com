@@ -108,7 +108,8 @@ const emailConfig = {
 
 1. Paste the four IDs, save, reload the site.
 2. Add a bike to the bag → Checkout → fill the form (use your own email as the
-   customer address) → **Submit Order**.
+   customer address) → **Continue to Review** → **Reserve Unit — No Payment
+   Taken**.
 3. You should get the merchant copy at `etorqued@gmail.com` and the customer
    copy at the address you typed.
 4. Do the same from Support → **Send an inquiry**; the button only changes to

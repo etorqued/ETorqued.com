@@ -608,15 +608,15 @@ body, button, input, textarea, select, .product-card, .product-info, .product-sp
 .hero {
   margin-top:0;
   min-height:calc(100vh - 88px);
-  padding-top:clamp(72px, calc(58px + 7vh), 120px);
+  padding-top:clamp(24px, calc(16px + 3vh), 56px);
   padding-bottom:120px;
 }
 
 @media (max-width:768px) {
   .hero {
     min-height:calc(100vh - 94px);
-    padding-top:clamp(72px, 12vw, 100px);
-    padding-bottom:120px;
+    padding-top:clamp(18px, 5vw, 32px);
+    padding-bottom:110px;
   }
 }
 
@@ -1044,3 +1044,41 @@ button,
 .form-status a { color:inherit; text-decoration:underline; text-underline-offset:2px; }
 .form-honeypot { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
 .submit-button[disabled] { opacity:.65; cursor:progress; }
+
+/* Checkout step 2 — validated order review plus the Stripe-pending reserve notice. */
+.checkout-layout[hidden] { display:none; }
+.review-panel { display:flex; flex-direction:column; gap:18px; }
+.review-block { border:1px solid var(--line); background:#fff; padding:26px 26px 24px; }
+.review-block h3 { margin:0 0 14px; font-family:inherit; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+.review-delivery-list { display:grid; gap:4px; font-size:13px; line-height:1.6; color:var(--ink); }
+.review-delivery-list #reviewAddress { white-space:pre-line; }
+.review-delivery-list #reviewContact { color:var(--muted); }
+.review-delivery-meta { display:inline-block; margin-top:10px; padding:8px 10px; background:#eef8ff; color:#12658f; font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+.ghost-button { width:100%; margin-top:18px; padding:13px 18px; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--line); border-radius:9999px; background:#fff; color:var(--ink); font:inherit; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:border-color .2s ease, box-shadow .2s ease; }
+.ghost-button:hover, .ghost-button:focus-visible { border-color:#111111; box-shadow:0 0 10px rgba(0,240,255,.2); outline:0; }
+.review-totals { display:grid; gap:10px; margin:18px 0 0; }
+.review-totals > div { display:flex; align-items:baseline; justify-content:space-between; gap:16px; }
+.review-totals dt { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.review-totals dd { margin:0; font-size:13px; font-weight:600; color:var(--ink); }
+.review-grand-total { border-top:1px solid var(--line); padding-top:12px; }
+.review-grand-total dt { color:var(--ink); }
+.review-grand-total dd strong { font-size:17px; font-weight:800; }
+.payment-notice { display:flex; align-items:center; gap:12px; padding:13px 15px; border:1px solid rgba(0,240,255,.5); background:linear-gradient(110deg, #e9feff, #ffffff); }
+.payment-notice strong { display:block; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--ink); }
+.payment-notice small { display:block; margin-top:2px; font-size:11px; color:#0b6b76; }
+.payment-pulse { flex:0 0 auto; width:9px; height:9px; border-radius:50%; background:#00d5e8; animation:payment-pulse 2.4s ease-out infinite; }
+@keyframes payment-pulse { 0% { box-shadow:0 0 0 0 rgba(0,213,232,.55); } 70% { box-shadow:0 0 0 11px rgba(0,213,232,0); } 100% { box-shadow:0 0 0 0 rgba(0,213,232,0); } }
+.payment-panel h3 { margin-top:20px; color:var(--ink); }
+.payment-copy { margin:0 0 16px; font-size:13px; line-height:1.65; color:var(--muted); }
+.payment-checklist { display:grid; gap:8px; margin:0 0 20px; padding:0; list-style:none; }
+.payment-checklist li { position:relative; padding-left:22px; font-size:12px; line-height:1.5; color:var(--ink); }
+.payment-checklist li::before { content:'✓'; position:absolute; left:0; top:-1px; color:#00c2d1; font-weight:800; }
+.payment-checklist strong { font-weight:700; }
+#reserveOrderButton { border:1px solid #111111; border-radius:9999px; background:#111111 !important; color:#ffffff !important; }
+#reserveOrderButton:hover, #reserveOrderButton:focus-visible { border-color:#00F0FF; box-shadow:0 0 10px rgba(0,240,255,.2); outline:0; }
+#orderForm .is-invalid { border-color:#c0392b !important; background:#fff7f6 !important; }
+.form-status[data-state="error"] { color:#b3261e; font-weight:600; }
+#confirmation:not([hidden]) { padding:clamp(48px,9vh,104px) clamp(20px,6vw,64px) 48px; }
+#confirmation:not([hidden]) #doneButton { max-width:520px; margin:0 auto; }
+@media (max-width:768px) { .review-block { padding:20px 16px 18px; } }
+@media (prefers-reduced-motion: reduce) { .payment-pulse { animation:none; } }

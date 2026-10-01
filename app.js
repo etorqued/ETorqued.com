@@ -107,6 +107,14 @@ const previewQuantity = document.querySelector('#previewQuantity');
 let selectedQuantity = 1;
 const orderForm = document.querySelector('#orderForm');
 const confirmation = document.querySelector('#confirmation');
+const checkoutStep = document.querySelector('#checkoutStep');
+const checkoutPageContent = document.querySelector('#checkoutPageContent');
+const checkoutFormView = document.querySelector('#checkoutFormView');
+const orderReview = document.querySelector('#orderReview');
+const reserveOrderButton = document.querySelector('#reserveOrderButton');
+const editOrderButton = document.querySelector('#editOrderButton');
+const orderStatus = document.querySelector('#orderStatus');
+const reviewStatus = document.querySelector('#reviewStatus');
 const bagCount = document.querySelector('#bagCount');
 const navBagCount = document.querySelector('#navBagCount');
 const cartToast = document.querySelector('#cartToast');
@@ -115,6 +123,7 @@ const mobileMenuButton = document.querySelector('#mobileMenuButton');
 let cartToastTimer;
 let selectedProduct = products[0];
 let currentReference = '';
+let pendingOrder = null;
 let scrollLockCount = 0;
 let currentScrollY = 0;
 let previousBodyPaddingRight = '';
@@ -126,7 +135,7 @@ let selectedVariant = { frame: 'Stealth Black', battery: '60V Standard' };
 const variantPricing = { '60V Standard': 0 };
 const variantColors = { 'Stealth Black': '#17191d' };
 // EU-only storefront: one delivery estimate for all 27 member states.
-const euDeliveryEstimate = '3–6 Business Days';
+const euDeliveryEstimate = '7 Business Days';
 const euCountries = ['Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', 'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden'];
 const countryDelivery = Object.fromEntries(euCountries.map((country) => [country, euDeliveryEstimate]));
 const regionDelivery = { ...countryDelivery, 'United Kingdom (UK)': euDeliveryEstimate, 'United States (USA)': euDeliveryEstimate, 'European Union (EU)': euDeliveryEstimate };
@@ -193,7 +202,7 @@ const legalPages = [
   { slug: 'shipping-policy', title: 'Shipping Policy', description: 'Draft ETorqued Shipping Policy covering regions, processing, delivery, costs, customs, tracking, and damage.', sections: [
     ['Regions served', '<p>ETORQUED ships exclusively within the European Union, covering all 27 EU member states. Orders from outside the EU, including the United Kingdom and United States, are not accepted. Availability may depend on the destination, product, carrier, and applicable restrictions; confirm any excluded locations before publication.</p>'],
     ['Processing times', '<p>The storefront states that orders are prepared for dispatch within 2–4 business days. This is a current estimate, not a guarantee. The business should define when processing starts, whether weekends and holidays are excluded, and how preorders or unavailable items are handled.</p>'],
-    ['Estimated delivery', '<p>Current estimates are 3–6 business days across the EU. These estimates begin after dispatch and can vary by destination, carrier, customs, weather, and other events outside reasonable control.</p>'],
+    ['Estimated delivery', '<p>Current estimates are 7 business days across the EU. These estimates begin after dispatch and can vary by destination, carrier, customs, weather, and other events outside reasonable control.</p>'],
     ['Shipping costs', '<p>The storefront currently describes complimentary or free shipping to every EU member state. The business should confirm whether this applies to every product and destination, and whether any surcharge is disclosed at checkout.</p>'],
     ['Customs, VAT, and import charges', '<p>The business has not confirmed whether prices include VAT or whether customers may owe import duties, brokerage, or local taxes. Add a clear destination-specific explanation before publication rather than promising that charges are included.</p>'],
     ['Tracking and delivery issues', '<p>Where tracking is available, ETorqued or its carrier should provide tracking details after dispatch. If tracking does not update or a parcel is late, contact <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a> with the order reference and destination.</p>'],
@@ -528,7 +537,7 @@ function renderBikeDetails(product) {
     ['Warranty', product.warranty]
   ];
   bikeSpecs.innerHTML = specRows.filter(([, value]) => value).map(([label, value]) => `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></li>`).join('');
-  document.querySelector('#previewDelivery').textContent = 'Free EU-wide shipping · 3–6 business days';
+  document.querySelector('#previewDelivery').textContent = 'Free EU-wide shipping · 7 business days';
 }
 
 function updateDeliveryBadge(country = '') {
@@ -567,7 +576,7 @@ function openPreview(product) {
   if (product.collection !== 'bikes') {
     const specs = product.features || product.specSummary || [`${product.specs[0]}: ${product.specs[1]}`, `Detail: ${product.detail}`];
     document.querySelector('#previewSpecs').innerHTML = specs.map((spec) => `<li><span>${escapeHtml(spec)}</span></li>`).join('');
-    document.querySelector('#previewDelivery').textContent = 'Free EU-wide shipping · 3–6 business days';
+    document.querySelector('#previewDelivery').textContent = 'Free EU-wide shipping · 7 business days';
   }
   previewQuantity.value = selectedQuantity;
   previewArt.style.setProperty('--art', product.color);
@@ -714,14 +723,92 @@ function closeCart() {
   }, 700);
 }
 
+// Shared line-item markup so the step-1 summary and the step-2 review always match.
+function checkoutLineMarkup(item) {
+  return `<div class="checkout-line"><span>${escapeHtml(item.product.name)}<small>${escapeHtml(getVariantLabel(item.variant))} × ${escapeHtml(item.quantity)}</small></span><strong>${euro(item.unitPrice * item.quantity)}</strong></div>`;
+}
+
+// Captured after the delivery form validates; saved or emailed only when the
+// customer confirms in the reserve step.
+function buildOrderPayload() {
+  const formData = Object.fromEntries(new FormData(orderForm));
+  return {
+    ...formData,
+    delivery: { country: formData.country, fullName: formData.fullName, email: formData.email, phone: formData.phone, address: formData.address, postcode: formData.postcode },
+    reference: currentReference,
+    items: cart.map((item) => ({ product: item.product.name, variant: getVariantLabel(item.variant), quantity: item.quantity, total: item.unitPrice * item.quantity })),
+    total: cartTotal(),
+    // Stripe is not verified yet, so every captured order is a reserve-mode request.
+    payment: { provider: 'stripe', status: 'pending', mode: 'reserve' },
+    createdAt: new Date().toISOString()
+  };
+}
+
+function flagInvalidOrderFields() {
+  let firstInvalid = null;
+  orderForm.querySelectorAll('input, select, textarea').forEach((field) => {
+    if (field.name === 'website') return;
+    const valid = field.checkValidity();
+    field.classList.toggle('is-invalid', !valid);
+    if (valid) {
+      field.removeAttribute('aria-invalid');
+    } else {
+      field.setAttribute('aria-invalid', 'true');
+      if (!firstInvalid) firstInvalid = field;
+    }
+  });
+  return firstInvalid;
+}
+
+function clearOrderFieldFlag(event) {
+  const field = event.target.closest('input, select, textarea');
+  if (!field || !field.classList.contains('is-invalid')) return;
+  if (field.checkValidity()) {
+    field.classList.remove('is-invalid');
+    field.removeAttribute('aria-invalid');
+  }
+  if (!orderForm.querySelector('.is-invalid')) setFormStatus(orderStatus, '');
+}
+
+function renderOrderReview(order) {
+  document.querySelector('#reviewItems').innerHTML = cart.map(checkoutLineMarkup).join('');
+  document.querySelector('#reviewSubtotal').textContent = euro(order.total);
+  document.querySelector('#reviewTotal').textContent = euro(order.total);
+  document.querySelector('#reviewTotalInline').textContent = euro(order.total);
+  document.querySelector('#reviewReference').textContent = order.reference;
+  const delivery = order.delivery;
+  document.querySelector('#reviewName').textContent = delivery.fullName;
+  document.querySelector('#reviewAddress').textContent = `${delivery.address}\n${delivery.postcode}, ${delivery.country}`;
+  document.querySelector('#reviewContact').textContent = `${delivery.email} · ${delivery.phone}`;
+  document.querySelector('#reviewDeliveryEstimate').textContent = `Estimated delivery: ${regionDelivery[delivery.country] || euDeliveryEstimate} · Free EU-wide shipping`;
+  setFormStatus(reviewStatus, '');
+}
+
+function showCheckoutStep(step) {
+  const reviewing = step === 2;
+  checkoutFormView.hidden = reviewing;
+  orderReview.hidden = !reviewing;
+  if (checkoutStep) checkoutStep.textContent = reviewing ? 'Checkout — Step 2 of 2' : 'Checkout — Step 1 of 2';
+  if (checkoutPageContent) checkoutPageContent.scrollTop = 0;
+  focusOverlayControl(reviewing ? '#reserveOrderButton' : '#fullName');
+}
+
 function openCheckout() {
   if (!cart.length) return;
   currentReference = makeOrderReference();
-  checkoutItems.innerHTML = cart.map((item) => `<div class="checkout-line"><span>${escapeHtml(item.product.name)}<small>${escapeHtml(getVariantLabel(item.variant))} × ${escapeHtml(item.quantity)}</small></span><strong>${euro(item.unitPrice * item.quantity)}</strong></div>`).join('');
+  checkoutItems.innerHTML = cart.map(checkoutLineMarkup).join('');
   document.querySelector('#summaryTotal').textContent = euro(cartTotal());
   document.querySelector('#orderReference').textContent = currentReference;
+  document.querySelector('#confirmationFallback')?.remove();
   updateDeliveryBadge(document.querySelector('#deliveryCountry')?.value || '');
-  orderForm.hidden = false;
+  pendingOrder = null;
+  setFormStatus(orderStatus, '');
+  setFormStatus(reviewStatus, '');
+  checkoutFormView.hidden = false;
+  orderReview.hidden = true;
+  if (checkoutStep) checkoutStep.textContent = 'Checkout — Step 1 of 2';
+  if (checkoutPageContent) checkoutPageContent.scrollTop = 0;
+  checkoutPageContent.hidden = false;
   confirmation.hidden = true;
   rememberFocus();
   modal.hidden = false;
@@ -953,21 +1040,52 @@ document.querySelector('#supportInquiryForm').addEventListener('submit', async (
   }
 });
 
-orderForm.addEventListener('submit', async (event) => {
+orderForm.addEventListener('input', clearOrderFieldFlag);
+orderForm.addEventListener('change', clearOrderFieldFlag);
+
+// Step 1 only validates and shows the review — nothing is saved or emailed yet.
+orderForm.addEventListener('submit', (event) => {
   event.preventDefault();
   if (orderForm.dataset.sending === 'true') return;
   if (isHoneypotFilled(orderForm)) return;
-  const submitButton = orderForm.querySelector('button[type="submit"]');
-  const orderStatus = document.querySelector('#orderStatus');
-  const formData = Object.fromEntries(new FormData(orderForm));
-  const order = { ...formData, delivery: { country: formData.country, fullName: formData.fullName, email: formData.email, phone: formData.phone, address: formData.address, postcode: formData.postcode }, reference: currentReference, items: cart.map((item) => ({ product: item.product.name, variant: getVariantLabel(item.variant), quantity: item.quantity, total: item.unitPrice * item.quantity })), total: cartTotal(), createdAt: new Date().toISOString() };
+  if (!cart.length) {
+    setFormStatus(orderStatus, 'Your bag is empty — add a bike or part before checking out.', 'warning');
+    return;
+  }
+  if (!orderForm.reportValidity()) {
+    const firstInvalid = flagInvalidOrderFields();
+    setFormStatus(orderStatus, 'Please complete every required delivery field before reviewing your order.', 'error');
+    if (firstInvalid) firstInvalid.focus();
+    return;
+  }
+  flagInvalidOrderFields();
+  setFormStatus(orderStatus, '');
+  pendingOrder = buildOrderPayload();
+  renderOrderReview(pendingOrder);
+  showCheckoutStep(2);
+  // Logged so the captured inputs and totals can be verified while Stripe is pending.
+  console.log('ETORQUED order payload captured (Stripe pending — reserve mode):', pendingOrder);
+});
+
+editOrderButton.addEventListener('click', () => showCheckoutStep(1));
+
+// Step 2 — Stripe is not verified yet, so the review step reserves the unit,
+// keeps the order record, and emails the invoice next steps without any charge.
+reserveOrderButton.addEventListener('click', async () => {
+  if (!pendingOrder || reserveOrderButton.dataset.sending === 'true') return;
+  if (!cart.length) {
+    setFormStatus(reviewStatus, 'Your bag is empty — add an item before reserving.', 'warning');
+    return;
+  }
+  const order = pendingOrder;
+  const formData = order.delivery;
+  const itemCount = order.items.length;
+  const deliveryEstimate = regionDelivery[formData.country] || euDeliveryEstimate;
   const orders = JSON.parse(localStorage.getItem('etorqued-orders') || '[]');
   orders.push(order);
   localStorage.setItem('etorqued-orders', JSON.stringify(orders));
-  const itemCount = cart.length;
-  const deliveryEstimate = regionDelivery[formData.country] || euDeliveryEstimate;
   const sharedParams = {
-    order_reference: currentReference,
+    order_reference: order.reference,
     order_items: order.items.map((item) => `${item.product} — ${item.variant} × ${item.quantity} — ${euro(item.total)}`).join('\n'),
     order_total: euro(order.total),
     // Key stays "delivery_region" because the existing email template uses it.
@@ -981,11 +1099,12 @@ orderForm.addEventListener('submit', async (event) => {
     support_email: SUPPORT_EMAIL
   };
 
-  orderForm.dataset.sending = 'true';
-  submitButton.disabled = true;
-  const originalLabel = submitButton.innerHTML;
-  submitButton.textContent = 'Sending…';
-  setFormStatus(orderStatus, 'Sending your order…');
+  reserveOrderButton.dataset.sending = 'true';
+  reserveOrderButton.disabled = true;
+  const originalLabel = reserveOrderButton.innerHTML;
+  reserveOrderButton.textContent = 'Reserving your unit…';
+  setFormStatus(reviewStatus, 'Reserving your unit and notifying our team…');
+  console.log('ETORQUED reserve order submitted (payment pending):', order);
 
   // One template, two recipients: the merchant copy goes to etorqued@gmail.com
   // with reply-to set to the customer, the customer copy goes to the address
@@ -1011,12 +1130,12 @@ orderForm.addEventListener('submit', async (event) => {
     })
   ]);
 
-  orderForm.dataset.sending = 'false';
-  submitButton.disabled = false;
-  submitButton.innerHTML = originalLabel;
-  setFormStatus(orderStatus, '');
+  reserveOrderButton.dataset.sending = 'false';
+  reserveOrderButton.disabled = false;
+  reserveOrderButton.innerHTML = originalLabel;
+  setFormStatus(reviewStatus, '');
 
-  document.querySelector('#confirmationText').textContent = `Your order ${currentReference} for ${itemCount} item${itemCount === 1 ? '' : 's'} has been received. We’ll email your invoice and delivery details to ${formData.email}.`;
+  document.querySelector('#confirmationText').textContent = `Your unit is reserved under ${order.reference} — ${itemCount} item${itemCount === 1 ? '' : 's'}, ${euro(order.total)}. Card payment is not live yet (Stripe verification pending), so we’ll email your invoice and a secure payment link to ${formData.email} to confirm delivery.`;
   document.querySelector('#confirmationFallback')?.remove();
   if (!merchantSent || !customerSent) {
     const fallback = document.createElement('p');
@@ -1033,6 +1152,8 @@ orderForm.addEventListener('submit', async (event) => {
   cart.length = 0;
   updateBagBadge();
   renderCart();
-  orderForm.hidden = true;
+  pendingOrder = null;
+  checkoutPageContent.hidden = true;
   confirmation.hidden = false;
+  focusOverlayControl('#doneButton');
 });
