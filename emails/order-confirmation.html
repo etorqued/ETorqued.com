@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>ETORQUED — order {{order_reference}}</title>
+<style>
+  body { margin:0; padding:0; background:#f5f5f7; }
+  table { border-collapse:collapse; }
+  img { border:0; outline:none; text-decoration:none; }
+  a { text-decoration:none; }
+  @media (max-width:520px) {
+    .shell { padding:12px 8px !important; }
+    .pad { padding-left:20px !important; padding-right:20px !important; }
+    .stack { display:block !important; width:100% !important; padding:0 0 18px 0 !important; }
+    .headline { font-size:29px !important; }
+    .hide-sm { display:none !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#f5f5f7;">
+
+<!-- Preheader: shown next to the subject line in most inboxes, hidden in the body. -->
+<div style="display:none;font-size:1px;color:#f5f5f7;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{role_preheader}}</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f7;">
+  <tr>
+    <td align="center" class="shell" style="padding:26px 12px;">
+
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#ffffff;border:1px solid #dedede;">
+
+        <!-- Announcement strip -->
+        <tr>
+          <td class="pad" style="background:#f5f5f7;border-bottom:1px solid rgba(0,240,255,.3);padding:9px 28px;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#111111;">
+            &#9889; Free shipping across the EU &nbsp;&#183;&nbsp; 1-year limited warranty
+          </td>
+        </tr>
+
+        <!-- Header -->
+        <tr>
+          <td class="pad" style="background:#111111;padding:20px 28px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="font-family:'Orbitron','Arial Black',Arial,sans-serif;font-size:21px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:#ffffff;">
+                  ETORQUED
+                </td>
+                <td align="right" class="hide-sm" style="font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#00F0FF;">
+                  {{role_eyebrow}}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Cyan interaction accent -->
+        <tr><td style="height:3px;background:#00F0FF;line-height:3px;font-size:0;">&nbsp;</td></tr>
+
+        <!-- Headline + intro -->
+        <tr>
+          <td class="pad" style="padding:30px 28px 0;">
+            <p style="margin:0 0 14px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#777777;">
+              {{order_date}} &nbsp;&#183;&nbsp; Ref {{order_reference}}
+            </p>
+            <h1 class="headline" style="margin:0 0 14px;font-family:'Barlow Condensed','Arial Narrow',Impact,Arial,sans-serif;font-size:34px;font-weight:800;line-height:.95;letter-spacing:-.01em;text-transform:uppercase;color:#111111;">
+              {{role_headline}}
+            </h1>
+            <p style="margin:0;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#444444;">
+              {{role_intro}}
+            </p>
+          </td>
+        </tr>
+
+        <!-- Order summary -->
+        <tr>
+          <td class="pad" style="padding:24px 28px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #111111;border-bottom:1px solid #dedede;">
+              <tr>
+                <td class="stack" width="34%" valign="top" style="padding:15px 12px 15px 0;">
+                  <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#777777;">Reference</p>
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#111111;">{{order_reference}}</p>
+                </td>
+                <td class="stack" width="33%" valign="top" style="padding:15px 12px;">
+                  <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#777777;">Order total</p>
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#111111;">{{order_total}}</p>
+                </td>
+                <td class="stack" width="33%" valign="top" style="padding:15px 0 15px 12px;">
+                  <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#777777;">Placed</p>
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#111111;">{{order_date}}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Items -->
+        <tr>
+          <td class="pad" style="padding:26px 28px 0;">
+            <p style="margin:0 0 4px;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#777777;">
+              Items &nbsp;&#183;&nbsp; {{order_item_count}}
+            </p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              {{order_items_html}}
+            </table>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #111111;">
+              <tr>
+                <td style="padding:16px 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#111111;">
+                  Order total
+                </td>
+                <td align="right" style="padding:16px 0;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#111111;white-space:nowrap;">
+                  {{order_total}}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Customer + delivery -->
+        <tr>
+          <td class="pad" style="padding:26px 28px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td class="stack" width="50%" valign="top" style="padding:0 16px 0 0;">
+                  <p style="margin:0 0 7px;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#777777;">Customer</p>
+                  <p style="margin:0 0 3px;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#111111;">{{customer_name}}</p>
+                  <p style="margin:0 0 3px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;color:#777777;">{{customer_email}}</p>
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;color:#777777;">{{customer_phone}}</p>
+                </td>
+                <td class="stack" width="50%" valign="top" style="padding:0 0 0 16px;border-left:1px solid #dedede;">
+                  <p style="margin:0 0 7px;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#777777;">Delivery</p>
+                  <p style="margin:0 0 3px;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#111111;">{{address}}</p>
+                  <p style="margin:0 0 3px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;color:#777777;">{{postcode}}</p>
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;color:#777777;">Region: {{delivery_region}}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Delivery estimate callout -->
+        <tr>
+          <td class="pad" style="padding:24px 28px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f7;border-left:3px solid #00F0FF;">
+              <tr>
+                <td style="padding:14px 18px;">
+                  <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#777777;">Estimated delivery</p>
+                  <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:#111111;">{{delivery_estimate}}</p>
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;color:#777777;">{{payment_note}}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Next step + action -->
+        <tr>
+          <td class="pad" style="padding:26px 28px 32px;">
+            <p style="margin:0 0 20px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#444444;">
+              {{role_next_step}}
+            </p>
+            <a href="{{role_button_url}}" style="display:inline-block;background:#111111;border:1px solid #111111;border-radius:9999px;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;">
+              {{role_button_label}}
+            </a>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td class="pad" style="background:#f5f5f7;border-top:1px solid #dedede;padding:22px 28px;">
+            <p style="margin:0 0 10px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.6;color:#777777;">
+              Questions about this order? Reply to this email or write to
+              <a href="mailto:{{support_email}}" style="color:#111111;text-decoration:underline;">{{support_email}}</a>.
+            </p>
+            <p style="margin:0 0 12px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.6;color:#777777;">
+              ETORQUED &#183;
+              <a href="{{site_url}}" style="color:#111111;text-decoration:underline;">{{site_url}}</a>
+            </p>
+            <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:1.6;color:#999999;">
+              You are receiving this because an order was placed at ETORQUED. &#169; {{year}} ETORQUED. All rights reserved.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>

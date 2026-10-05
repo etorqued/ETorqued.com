@@ -8,40 +8,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ── Email delivery (EmailJS) ────────────────────────────────────────────────
    Order confirmations and support inquiries are emailed through EmailJS over
-   its REST endpoint: no backend, no SDK, no build step. Setup steps and the
-   exact template bodies are documented in EMAIL-SETUP.md.
+   its REST endpoint: no backend, no SDK, no build step. Setup steps are in
+   EMAIL-SETUP.md and the branded HTML bodies are the two files in emails/.
+   One order template is sent to both the shop and the customer, re-worded for
+   each recipient by the role_* variables in the reserve handler below.
 
    The four values below are public identifiers and are meant to ship in this
    file. Restrict them to your domain in the EmailJS dashboard
    (Account → Security → allowed origins). Never place a private API key or a
    Stripe secret key here — anything in this file is visible to visitors.
 
-   Until the placeholders are replaced nothing is emailed: the confirmation
-   still appears, with a manual fallback telling the customer to email us
-   directly and quote their reference.
+   If these values are ever emptied back to '[[' placeholders nothing is
+   emailed: the confirmation still appears, with a manual fallback telling the
+   customer to email us directly and quote their reference.
    ─────────────────────────────────────────────────────────────────────────── */
 const SUPPORT_EMAIL = 'etorqued@gmail.com';
 const emailConfig = {
-  publicKey: '[[EMAILJS PUBLIC KEY]]',
-  serviceId: '[[EMAILJS SERVICE ID]]',
-  orderTemplateId: '[[EMAILJS ORDER TEMPLATE ID]]',
-  inquiryTemplateId: '[[EMAILJS INQUIRY TEMPLATE ID]]'
+  publicKey: 'WdonMZxgAoEmf-m_X',
+  serviceId: 'service_z9moz9m',
+  orderTemplateId: 'template_6f4ydtb',
+  inquiryTemplateId: 'template_syi6di4'
 };
 
+/* ── Retry queue for failed sends ───────────────────────────────────────────
+   There is no server here to catch a failed email, so a send that does not
+   leave is written to localStorage and retried instead of being lost: shortly
+   after every page load, when the browser comes back online, from the notice
+   bar's "Retry now" button, and on a slow ticker while anything is pending.
+   Retries back off (20s, 40s, 80s … capped at an hour) so a broken mail service
+   is never hammered. The notice bar stays up until the message actually leaves,
+   and the checkout modal carries its own copy of the same state.
+   ─────────────────────────────────────────────────────────────────────────── */
+const EMAIL_QUEUE_KEY = 'etorqued-email-queue';
+const EMAIL_QUEUE_LIMIT = 25;
+const EMAIL_RETRY_BASE_MS = 20000;
+const EMAIL_RETRY_MAX_MS = 3600000;
+const EMAIL_QUEUE_TICK_MS = 10000;
+
 let emailConfigWarned = false;
+let emailFlushInFlight = false;
+let emailQueueTicker = null;
+let emailNoticeTimer = null;
+let emailNoticeSentCount = 0;
 
 function isEmailConfigured() {
   return Object.values(emailConfig).every((value) => !value.includes('[['));
 }
 
-async function sendEmail(templateId, params) {
-  if (!isEmailConfigured() || String(templateId).includes('[[')) {
-    if (!emailConfigWarned) {
-      emailConfigWarned = true;
-      console.warn('EmailJS is not configured yet — orders and inquiries are not being emailed. See emailConfig in app.js.');
-    }
-    return false;
-  }
+// Talks to the EmailJS REST endpoint and never throws: callers get a plain
+// result so a failed send can be queued instead of only logged.
+async function postEmail(templateId, params) {
   try {
     const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
@@ -54,14 +70,253 @@ async function sendEmail(templateId, params) {
       })
     });
     if (!response.ok) {
-      console.warn('EmailJS rejected a message:', response.status, await response.text().catch(() => ''));
-      return false;
+      const detail = await response.text().catch(() => '');
+      console.warn('EmailJS rejected a message:', response.status, detail);
+      return { ok: false, reason: `${response.status} ${detail}`.trim() };
     }
-    return true;
+    return { ok: true };
   } catch (error) {
     console.warn('EmailJS request failed:', error);
+    return { ok: false, reason: String((error && error.message) || error) };
+  }
+}
+
+function readEmailQueue() {
+  try {
+    const raw = localStorage.getItem(EMAIL_QUEUE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list.filter((item) => item && item.templateId && item.params) : [];
+  } catch (error) {
+    console.warn('Could not read the pending email queue:', error);
+    return [];
+  }
+}
+
+function writeEmailQueue(list) {
+  try {
+    if (!list.length) {
+      localStorage.removeItem(EMAIL_QUEUE_KEY);
+      return true;
+    }
+    localStorage.setItem(EMAIL_QUEUE_KEY, JSON.stringify(list.slice(-EMAIL_QUEUE_LIMIT)));
+    return true;
+  } catch (error) {
+    console.warn('Could not save the pending email queue:', error);
     return false;
   }
+}
+
+// A message is identified by who it goes to plus what it is, so a repeated
+// failure of the same order email never stacks up as duplicate retries.
+function emailQueueKey(templateId, params) {
+  return [templateId, params.to_email || '', params.order_reference || '', params.role_eyebrow || params.submitted_at || ''].join('|');
+}
+
+function queueEmail(templateId, params) {
+  const key = emailQueueKey(templateId, params);
+  const queue = readEmailQueue();
+  if (queue.some((item) => item.key === key)) return true;
+  queue.push({ key, templateId, params, createdAt: Date.now(), attempts: 0, lastAttemptAt: Date.now() });
+  const saved = writeEmailQueue(queue);
+  if (saved) {
+    console.info('ETORQUED: email queued for automatic retry.', { templateId, to: params.to_email });
+    updateEmailQueueWork();
+    syncEmailQueueNotice();
+  }
+  return saved;
+}
+
+function emailRetryDelayMs(attempts) {
+  return Math.min(EMAIL_RETRY_BASE_MS * Math.pow(2, attempts), EMAIL_RETRY_MAX_MS);
+}
+
+// Sends everything that failed, oldest first. A manual retry ignores the back-
+// off; automatic runs only touch items that are due, so an outage settles into
+// an occasional background attempt until it works.
+async function flushEmailQueue({ manual = false } = {}) {
+  if (emailFlushInFlight || !isEmailConfigured()) return 0;
+  const queue = readEmailQueue();
+  if (!queue.length) {
+    updateEmailQueueWork();
+    return 0;
+  }
+  const now = Date.now();
+  const due = queue.filter((item) => manual || !item.lastAttemptAt || now - item.lastAttemptAt >= emailRetryDelayMs(item.attempts || 0));
+  if (!due.length) {
+    syncEmailQueueNotice();
+    return 0;
+  }
+  emailFlushInFlight = true;
+  syncEmailQueueNotice({ sending: true });
+  const pending = [];
+  let sent = 0;
+  for (const item of queue) {
+    if (!due.includes(item)) {
+      pending.push(item);
+      continue;
+    }
+    const result = await postEmail(item.templateId, item.params);
+    if (result.ok) {
+      sent += 1;
+    } else {
+      pending.push({ ...item, attempts: (item.attempts || 0) + 1, lastAttemptAt: Date.now(), lastError: result.reason || '' });
+    }
+  }
+  writeEmailQueue(pending);
+  emailFlushInFlight = false;
+  if (sent) {
+    console.info(`ETORQUED: ${sent} queued email${sent === 1 ? '' : 's'} sent.`);
+    emailNoticeSentCount = sent;
+    noteConfirmationRetry(sent);
+  }
+  updateEmailQueueWork();
+  syncEmailQueueNotice();
+  return sent;
+}
+
+// The public helper used by checkout and the support form. It reports both
+// outcomes: whether the message left now, and whether it is safely queued for a
+// retry if it did not.
+async function sendEmail(templateId, params) {
+  if (!isEmailConfigured() || String(templateId).includes('[[')) {
+    if (!emailConfigWarned) {
+      emailConfigWarned = true;
+      console.warn('EmailJS is not configured yet — orders and inquiries are not being emailed. See emailConfig in app.js.');
+    }
+    return { ok: false, queued: false, reason: 'not-configured' };
+  }
+  const result = await postEmail(templateId, params);
+  if (result.ok) return { ok: true, queued: false };
+  return { ok: false, queued: queueEmail(templateId, params), reason: result.reason };
+}
+
+function emailNoticeElements() {
+  return {
+    notice: document.querySelector('#emailQueue'),
+    text: document.querySelector('#emailQueueText'),
+    icon: document.querySelector('#emailQueueIcon'),
+    action: document.querySelector('#emailQueueRetry')
+  };
+}
+
+// An open modal (checkout, cart, legal pages …) already shows the state itself,
+// and the bar must never sit on top of those controls.
+function isPageOverlayOpen() {
+  return Boolean(document.querySelector(
+    '.modal-overlay.open, .modal-overlay.is-open, .modal-backdrop.open, .modal-backdrop.is-open, .legal-overlay.open, .legal-overlay.is-open, .mobile-menu-overlay.open, .mobile-menu-overlay.is-open'
+  ));
+}
+
+function syncEmailQueueNotice({ sending = false } = {}) {
+  const { notice, text, icon, action } = emailNoticeElements();
+  if (!notice || !text || !icon || !action) return;
+  const pending = readEmailQueue().length;
+  clearTimeout(emailNoticeTimer);
+  notice.classList.remove('is-sending', 'is-sent');
+  if (isPageOverlayOpen()) {
+    notice.hidden = true;
+    return;
+  }
+  if (!pending) {
+    action.hidden = true;
+    if (emailNoticeSentCount) {
+      const sent = emailNoticeSentCount;
+      notice.hidden = false;
+      notice.classList.add('is-sent');
+      icon.textContent = '✓';
+      text.textContent = sent === 1 ? 'Your email has been sent.' : `Your ${sent} emails have been sent.`;
+      emailNoticeTimer = window.setTimeout(() => {
+        emailNoticeSentCount = 0;
+        notice.hidden = true;
+      }, 6000);
+      return;
+    }
+    notice.hidden = true;
+    return;
+  }
+  emailNoticeSentCount = 0;
+  notice.hidden = false;
+  notice.classList.toggle('is-sending', sending);
+  if (sending) {
+    action.hidden = true;
+    icon.textContent = '↻';
+    text.textContent = `Sending ${pending === 1 ? 'your pending email' : `${pending} pending emails`}…`;
+    return;
+  }
+  icon.textContent = '!';
+  text.textContent = '';
+  const strong = document.createElement('strong');
+  strong.textContent = pending === 1 ? 'One email is still pending.' : `${pending} emails are still pending.`;
+  text.append(strong, ` We’ll keep retrying automatically — you can also email ${SUPPORT_EMAIL}.`);
+  action.hidden = false;
+  action.disabled = false;
+}
+
+// Keeps a slow ticker alive only while something is actually waiting.
+function updateEmailQueueWork() {
+  if (readEmailQueue().length) {
+    if (!emailQueueTicker) {
+      emailQueueTicker = window.setInterval(() => {
+        flushEmailQueue();
+        syncEmailQueueNotice();
+      }, EMAIL_QUEUE_TICK_MS);
+    }
+    return;
+  }
+  if (emailQueueTicker) {
+    clearInterval(emailQueueTicker);
+    emailQueueTicker = null;
+  }
+}
+
+// If the checkout confirmation is still on screen when a retry succeeds, say so
+// there too — the modal is where the customer was told it had not been sent.
+function noteConfirmationRetry(sent) {
+  const fallback = document.querySelector('#confirmationFallback');
+  if (!fallback || !sent) return;
+  fallback.textContent = 'A copy of this order has now been emailed to us and to the address you entered.';
+}
+
+function initEmailQueue() {
+  const { action } = emailNoticeElements();
+  if (action) {
+    action.addEventListener('click', () => {
+      action.disabled = true;
+      flushEmailQueue({ manual: true });
+    });
+  }
+  // Overlays hide the bar, so re-check whenever one closes — a click or Escape
+  // is handled after the overlay has swapped its class, and the transition end
+  // catches animated closes either way. The ticker is the slow backstop.
+  const nudgeEmailQueueNotice = () => {
+    window.setTimeout(() => syncEmailQueueNotice(), 0);
+    window.setTimeout(() => syncEmailQueueNotice(), 700);
+  };
+  document.addEventListener('click', nudgeEmailQueueNotice, true);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') nudgeEmailQueueNotice();
+  }, true);
+  document.addEventListener('transitionend', (event) => {
+    const target = event.target;
+    if (target instanceof Element && target.matches('.modal-overlay, .modal-backdrop, .legal-overlay, .mobile-menu-overlay')) nudgeEmailQueueNotice();
+  }, true);
+  updateEmailQueueWork();
+  syncEmailQueueNotice();
+  if (readEmailQueue().length) window.setTimeout(() => flushEmailQueue(), 1500);
+}
+
+window.addEventListener('online', () => flushEmailQueue());
+window.addEventListener('focus', () => syncEmailQueueNotice());
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) return;
+  flushEmailQueue();
+  syncEmailQueueNotice();
+});
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initEmailQueue, { once: true });
+} else {
+  initEmailQueue();
 }
 
 function setFormStatus(element, message, state = 'info') {
@@ -1017,7 +1272,7 @@ document.querySelector('#supportInquiryForm').addEventListener('submit', async (
   submitButton.textContent = 'Sending…';
   setFormStatus(inquiryStatus, 'Sending your inquiry…');
 
-  const sent = await sendEmail(emailConfig.inquiryTemplateId, {
+  const inquiryResult = await sendEmail(emailConfig.inquiryTemplateId, {
     to_email: SUPPORT_EMAIL,
     to_name: 'ETORQUED',
     reply_to: fields.supportEmail,
@@ -1025,15 +1280,20 @@ document.querySelector('#supportInquiryForm').addEventListener('submit', async (
     email: fields.supportEmail,
     message: fields.supportMessage,
     support_email: SUPPORT_EMAIL,
+    site_url: 'https://etorqued.com',
+    year: String(new Date().getUTCFullYear()),
     submitted_at: new Date().toUTCString()
   });
 
   form.dataset.sending = 'false';
   submitButton.disabled = false;
-  if (sent) {
+  if (inquiryResult.ok) {
     submitButton.innerHTML = 'Inquiry Sent <span>✓</span>';
     form.reset();
     setFormStatus(inquiryStatus, `Thanks — your message is on its way. We’ll reply to ${fields.supportEmail}.`);
+  } else if (inquiryResult.queued) {
+    submitButton.innerHTML = originalLabel;
+    setFormStatus(inquiryStatus, `We couldn’t reach the mail service just now — your message is saved and we’ll keep retrying automatically. If it’s urgent, email ${SUPPORT_EMAIL} directly.`, 'warning');
   } else {
     submitButton.innerHTML = originalLabel;
     setFormStatus(inquiryStatus, `We couldn’t send that automatically. Email ${SUPPORT_EMAIL} directly and we’ll pick it up.`);
@@ -1088,7 +1348,17 @@ reserveOrderButton.addEventListener('click', async () => {
     order_reference: order.reference,
     order_items: order.items.map((item) => `${item.product} — ${item.variant} × ${item.quantity} — ${euro(item.total)}`).join('\n'),
     order_total: euro(order.total),
-    // Key stays "delivery_region" because the existing email template uses it.
+    // Structured rows for the branded HTML template. The plain-text list above
+    // still powers the text fallback and the manual mailto link.
+    order_items_html: order.items
+      .map((item) => `<tr><td valign="top" style="padding:14px 0;border-bottom:1px solid #dedede;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#111111;">${escapeHtml(item.product)}<br><span style="font-size:10px;color:#777777;">${escapeHtml(item.variant)} &times; ${escapeHtml(item.quantity)}</span></td><td align="right" valign="top" style="padding:14px 0;border-bottom:1px solid #dedede;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#111111;white-space:nowrap;">${euro(item.total)}</td></tr>`)
+      .join(''),
+    order_item_count: String(itemCount),
+    order_date: new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(order.createdAt)),
+    // Reserve mode: the unit is held, but no card payment has been taken.
+    payment_note: 'Payment not taken yet — this order is reserved pending invoice.',
+    site_url: 'https://etorqued.com',
+    year: String(new Date(order.createdAt).getUTCFullYear()),
     delivery_region: formData.country,
     delivery_estimate: deliveryEstimate,
     customer_name: formData.fullName,
@@ -1109,24 +1379,34 @@ reserveOrderButton.addEventListener('click', async () => {
   // One template, two recipients: the merchant copy goes to etorqued@gmail.com
   // with reply-to set to the customer, the customer copy goes to the address
   // they entered and replies come back to the support inbox.
-  const [merchantSent, customerSent] = await Promise.all([
+  const [merchantResult, customerResult] = await Promise.all([
     sendEmail(emailConfig.orderTemplateId, {
       ...sharedParams,
       to_email: SUPPORT_EMAIL,
       to_name: 'ETORQUED',
       reply_to: formData.email,
-      role_headline: `New order ${currentReference} — ${euro(order.total)}`,
-      role_intro: 'A new order was placed on the storefront. The fulfilment details are below.',
-      role_next_step: `Reply to this email to reach ${formData.fullName}, raise the invoice, and confirm the delivery window.`
+      role_subject: `New order ${currentReference} — ${euro(order.total)}`,
+      role_preheader: `New order ${currentReference} — ${euro(order.total)} from ${formData.fullName}.`,
+      role_eyebrow: 'New order received',
+      role_headline: 'New order — action needed',
+      role_intro: 'A new order was placed on the storefront. Fulfilment details are below — reply to this email to reach the customer directly.',
+      role_next_step: `Reply to this email to reach ${formData.fullName}, raise the invoice, and confirm the delivery window.`,
+      role_button_label: `Reply to ${formData.fullName}`,
+      role_button_url: `mailto:${formData.email}?subject=${encodeURIComponent(`Your ETORQUED order ${currentReference}`)}`
     }),
     sendEmail(emailConfig.orderTemplateId, {
       ...sharedParams,
       to_email: formData.email,
       to_name: formData.fullName,
       reply_to: SUPPORT_EMAIL,
-      role_headline: `Your ETORQUED order ${currentReference}`,
+      role_subject: `Your ETORQUED order ${currentReference}`,
+      role_preheader: `Order ${currentReference} — ${euro(order.total)}. Here is your confirmation.`,
+      role_eyebrow: 'Order confirmed',
+      role_headline: 'Your order is in',
       role_intro: 'Thanks for your order — here is a copy of what we received.',
-      role_next_step: 'Next: we email your invoice and payment details, then confirm your delivery window.'
+      role_next_step: 'Next: we email your invoice and a secure payment link, then confirm your delivery window.',
+      role_button_label: 'Email us about this order',
+      role_button_url: `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${currentReference}`)}`
     })
   ]);
 
@@ -1137,7 +1417,7 @@ reserveOrderButton.addEventListener('click', async () => {
 
   document.querySelector('#confirmationText').textContent = `Your unit is reserved under ${order.reference} — ${itemCount} item${itemCount === 1 ? '' : 's'}, ${euro(order.total)}. Card payment is not live yet (Stripe verification pending), so we’ll email your invoice and a secure payment link to ${formData.email} to confirm delivery.`;
   document.querySelector('#confirmationFallback')?.remove();
-  if (!merchantSent || !customerSent) {
+  if (!merchantResult.ok || !customerResult.ok) {
     const fallback = document.createElement('p');
     fallback.id = 'confirmationFallback';
     fallback.className = 'form-status';
@@ -1146,7 +1426,15 @@ reserveOrderButton.addEventListener('click', async () => {
     const body = encodeURIComponent(`Reference: ${currentReference}\nTotal: ${euro(order.total)}\n\n${sharedParams.order_items}\n\nName: ${formData.fullName}\nDeliver to: ${formData.address}, ${formData.postcode}, ${formData.country}`);
     link.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
     link.textContent = SUPPORT_EMAIL;
-    fallback.append('An automatic copy of this order could not be sent. Email us at ', link, ` and quote your reference ${currentReference} so we can raise your invoice.`);
+    // A queued message is not lost: it is stored in this browser and retried
+    // until it leaves, so the wording must not read like a dead end.
+    fallback.append(
+      merchantResult.queued || customerResult.queued
+        ? 'Your confirmation email could not be sent yet — it is saved and we’ll keep retrying automatically. You can also email us at '
+        : 'An automatic copy of this order could not be sent. Email us at ',
+      link,
+      ` and quote your reference ${currentReference} so we can raise your invoice.`
+    );
     document.querySelector('#confirmationText').after(fallback);
   }
   cart.length = 0;

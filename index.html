@@ -307,5 +307,11 @@
       <div class="confirmation" id="confirmation" hidden><div class="confirmation-mark">✓</div><p class="eyebrow">Order received</p><h2>Thanks for your order.</h2><p id="confirmationText"></p><button class="submit-button" type="button" id="doneButton">Back to shop <span>→</span></button></div>
     </section>
   </div>
+  <!-- Pending-email notice: stays visible until a queued email actually leaves. -->
+  <div class="email-queue" id="emailQueue" hidden>
+    <span class="email-queue-icon" id="emailQueueIcon" aria-hidden="true">!</span>
+    <span class="email-queue-text" id="emailQueueText" role="status" aria-live="polite"></span>
+    <button class="email-queue-action" type="button" id="emailQueueRetry" hidden>Retry now</button>
+  </div>
 </body>
 </html>
