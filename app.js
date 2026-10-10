@@ -705,7 +705,7 @@ function renderProducts() {
     grid.innerHTML = products.filter((product) => product.collection === collection).map((product) => `
       <article class="product-card" data-reveal="card" data-product-id="${escapeHtml(product.id)}" tabindex="0" role="button" aria-label="View ${escapeHtml(product.name)}">
         <div class="product-visual product-visual--${escapeHtml(product.collection)}">${product.image ? `<img class="product-image" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.alt || product.name)}" loading="lazy" decoding="async">` : `<div class="product-art" style="--art:${escapeHtml(product.color)}" data-mark="${escapeHtml(product.mark)}"></div>`}</div>
-        <div class="product-info"><div class="product-info-copy"><h3>${escapeHtml(product.name)}</h3>${product.conversionSpec ? `<span class="product-specs">${escapeHtml(product.conversionSpec)}</span>` : ''}<span class="product-stock">⚡ Only ${escapeHtml(product.stock)} left in stock</span></div><span class="product-price">${euro(product.price)}</span></div>
+        <div class="product-info"><div class="product-info-copy"><h3>${escapeHtml(product.name)}</h3>${product.conversionSpec ? `<span class="product-specs">${escapeHtml(product.conversionSpec)}</span>` : ''}<span class="product-stock">⚡ In stock</span></div><span class="product-price">${euro(product.price)}</span></div>
         <div class="product-actions">
           <button class="quick-add" type="button" data-quick-add="${escapeHtml(product.id)}">Quick Add to Bag <span aria-hidden="true">→</span></button>
           ${product.paymentLink ? `<a class="buy-now" href="${escapeHtml(product.paymentLink)}" target="_blank" rel="noopener noreferrer" data-buy-now="${escapeHtml(product.id)}" aria-label="Buy ${escapeHtml(product.name)} now — opens Stripe checkout in a new tab">Buy Now <span aria-hidden="true">↗</span></a>` : ''}
@@ -771,7 +771,7 @@ function openPreview(product) {
   document.querySelector('#previewTitle').textContent = product.name;
   renderBikeDetails(product);
   document.querySelector('#previewPrice').textContent = euro(getVariantPrice(product));
-  document.querySelector('#previewStock').textContent = `Catalog availability: ${product.stock}`;
+  document.querySelector('#previewStock').textContent = 'In stock';
   document.querySelector('#previewDescription').textContent = product.description;
   const previewMicroSubhead = document.querySelector('#previewMicroSubhead');
   const previewRiderFit = document.querySelector('#previewRiderFit');
