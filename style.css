@@ -1110,3 +1110,8 @@ button,
 @media (max-width:768px) { .buy-now { min-height:48px; } }
 @media (max-width:600px) { .product-actions { grid-template-columns:1fr; } }
 .preview-buy-button { margin-top:10px; text-decoration:none; }
+
+/* Each bag line links straight to its own Stripe payment link, so a buyer can
+   pay for one item without leaving the bag. */
+.cart-buy-now { display:inline-block; margin-top:8px; color:#0b6b76; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; text-decoration:underline; text-underline-offset:2px; }
+.cart-buy-now:hover, .cart-buy-now:focus-visible { color:#0b4f58; outline:2px solid rgba(0,240,255,.5); outline-offset:2px; }

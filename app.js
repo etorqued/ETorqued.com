@@ -7,26 +7,25 @@ document.addEventListener('DOMContentLoaded', () => {
 }, { once: true });
 
 /* ── Email delivery (EmailJS) ────────────────────────────────────────────────
-   Order confirmations and support inquiries are emailed through EmailJS over
-   its REST endpoint: no backend, no SDK, no build step. Setup steps are in
-   EMAIL-SETUP.md and the branded HTML bodies are the two files in emails/.
-   One order template is sent to both the shop and the customer, re-worded for
-   each recipient by the role_* variables in the reserve handler below.
+   The support inquiry form is emailed through EmailJS over its REST endpoint:
+   no backend, no SDK, no build step. Setup steps are in EMAIL-SETUP.md and the
+   branded HTML body is emails/support-inquiry.html.
 
-   The four values below are public identifiers and are meant to ship in this
-   file. Restrict them to your domain in the EmailJS dashboard
+   Card payment and order receipts are handled by Stripe’s own checkout, so the
+   storefront no longer emails order confirmations.
+
+   The values below are public identifiers and are meant to ship in this file.
+   Restrict them to your domain in the EmailJS dashboard
    (Account → Security → allowed origins). Never place a private API key or a
    Stripe secret key here — anything in this file is visible to visitors.
 
-   If these values are ever emptied back to '[[' placeholders nothing is
-   emailed: the confirmation still appears, with a manual fallback telling the
-   customer to email us directly and quote their reference.
-   ─────────────────────────────────────────────────────────────────────────── */
+   If inquiryTemplateId is ever emptied back to a placeholder nothing is emailed:
+   the form says so and points the visitor at the support address.
+   ──────────────────────────────────────────────────────────────────────── */
 const SUPPORT_EMAIL = 'etorqued@gmail.com';
 const emailConfig = {
   publicKey: 'WdonMZxgAoEmf-m_X',
   serviceId: 'service_z9moz9m',
-  orderTemplateId: 'template_6f4ydtb',
   inquiryTemplateId: 'template_syi6di4'
 };
 
@@ -37,7 +36,7 @@ const emailConfig = {
    bar's "Retry now" button, and on a slow ticker while anything is pending.
    Retries back off (20s, 40s, 80s … capped at an hour) so a broken mail service
    is never hammered. The notice bar stays up until the message actually leaves,
-   and the checkout modal carries its own copy of the same state.
+   and the support form carries its own copy of the same state.
    ─────────────────────────────────────────────────────────────────────────── */
 const EMAIL_QUEUE_KEY = 'etorqued-email-queue';
 const EMAIL_QUEUE_LIMIT = 25;
@@ -167,14 +166,13 @@ async function flushEmailQueue({ manual = false } = {}) {
   if (sent) {
     console.info(`ETORQUED: ${sent} queued email${sent === 1 ? '' : 's'} sent.`);
     emailNoticeSentCount = sent;
-    noteConfirmationRetry(sent);
   }
   updateEmailQueueWork();
   syncEmailQueueNotice();
   return sent;
 }
 
-// The public helper used by checkout and the support form. It reports both
+// The public helper used by the support inquiry form. It reports both
 // outcomes: whether the message left now, and whether it is safely queued for a
 // retry if it did not.
 async function sendEmail(templateId, params) {
@@ -199,7 +197,7 @@ function emailNoticeElements() {
   };
 }
 
-// An open modal (checkout, cart, legal pages …) already shows the state itself,
+// An open modal (cart, legal pages …) already shows the state itself,
 // and the bar must never sit on top of those controls.
 function isPageOverlayOpen() {
   return Boolean(document.querySelector(
@@ -267,14 +265,6 @@ function updateEmailQueueWork() {
     clearInterval(emailQueueTicker);
     emailQueueTicker = null;
   }
-}
-
-// If the checkout confirmation is still on screen when a retry succeeds, say so
-// there too — the modal is where the customer was told it had not been sent.
-function noteConfirmationRetry(sent) {
-  const fallback = document.querySelector('#confirmationFallback');
-  if (!fallback || !sent) return;
-  fallback.textContent = 'A copy of this order has now been emailed to us and to the address you entered.';
 }
 
 function initEmailQueue() {
@@ -349,27 +339,15 @@ if (compareBeastPrice) compareBeastPrice.textContent = euro(products.find((produ
 const bikeGrid = document.querySelector('#bikeGrid');
 const accessoryGrid = document.querySelector('#accessoryGrid');
 const productGrids = [bikeGrid, accessoryGrid];
-const modal = document.querySelector('#checkoutModal');
 const cartModal = document.querySelector('#cartModal');
 const cartItems = document.querySelector('#cartItems');
 const cartSubtotal = document.querySelector('#cartSubtotal');
-const checkoutItems = document.querySelector('#checkoutItems');
 const cart = [];
 const previewModal = document.querySelector('#productPreviewModal');
 const previewArt = document.querySelector('#previewArt');
 const previewThumbnails = document.querySelector('#previewThumbnails');
 const previewQuantity = document.querySelector('#previewQuantity');
 let selectedQuantity = 1;
-const orderForm = document.querySelector('#orderForm');
-const confirmation = document.querySelector('#confirmation');
-const checkoutStep = document.querySelector('#checkoutStep');
-const checkoutPageContent = document.querySelector('#checkoutPageContent');
-const checkoutFormView = document.querySelector('#checkoutFormView');
-const orderReview = document.querySelector('#orderReview');
-const reserveOrderButton = document.querySelector('#reserveOrderButton');
-const editOrderButton = document.querySelector('#editOrderButton');
-const orderStatus = document.querySelector('#orderStatus');
-const reviewStatus = document.querySelector('#reviewStatus');
 const bagCount = document.querySelector('#bagCount');
 const navBagCount = document.querySelector('#navBagCount');
 const cartToast = document.querySelector('#cartToast');
@@ -377,8 +355,6 @@ const mobileMenu = document.querySelector('#mobileMenu');
 const mobileMenuButton = document.querySelector('#mobileMenuButton');
 let cartToastTimer;
 let selectedProduct = products[0];
-let currentReference = '';
-let pendingOrder = null;
 let scrollLockCount = 0;
 let currentScrollY = 0;
 let previousBodyPaddingRight = '';
@@ -490,7 +466,7 @@ function restoreFocus() {
 }
 
 function restoreFocusIfNoOverlay() {
-  const overlays = [legalPage, faqModal, supportModal, modal, previewModal, cartModal, mobileMenu];
+  const overlays = [legalPage, faqModal, supportModal, previewModal, cartModal, mobileMenu];
   if (!overlays.some((overlay) => overlay && !overlay.hidden && !overlay.classList.contains('closing'))) restoreFocus();
 }
 
@@ -527,7 +503,6 @@ function closeActiveOverlay() {
     [legalPage, () => { window.location.hash = 'top'; }],
     [faqModal, () => closeInfoModal(faqModal)],
     [supportModal, () => closeInfoModal(supportModal)],
-    [modal, closeCheckout],
     [previewModal, closePreview],
     [cartModal, closeCart],
     [mobileMenu, closeMobileMenu]
@@ -676,7 +651,7 @@ function scrollToCollection(id) {
 
 function returnHome(event) {
   event.preventDefault();
-  [faqModal, supportModal, modal, previewModal, cartModal].forEach((overlay) => {
+  [faqModal, supportModal, previewModal, cartModal].forEach((overlay) => {
     if (overlay && !overlay.hidden) {
       overlay.classList.remove('open', 'is-open', 'closing');
       overlay.hidden = true;
@@ -742,24 +717,6 @@ function renderProducts() {
   renderCollection('accessories', accessoryGrid);
 }
 
-// References are derived from the date plus random characters so two customers
-// ordering on the same day can never be issued the same number.
-function makeOrderReference() {
-  const now = new Date();
-  const stamp = [now.getFullYear() % 100, now.getMonth() + 1, now.getDate()]
-    .map((part) => String(part).padStart(2, '0'))
-    .join('');
-  let suffix = '';
-  if (window.crypto?.getRandomValues) {
-    const randomValues = new Uint32Array(1);
-    window.crypto.getRandomValues(randomValues);
-    suffix = randomValues[0].toString(36).toUpperCase().slice(-4).padStart(4, '0');
-  } else {
-    suffix = Math.random().toString(36).toUpperCase().slice(2, 6).padStart(4, '0');
-  }
-  return `#ET-${stamp}-${suffix}`;
-}
-
 function getVariantPrice(product, variant = selectedVariant) {
   return product.price + (variantPricing[variant.battery] || 0);
 }
@@ -796,15 +753,6 @@ function renderBikeDetails(product) {
   ];
   bikeSpecs.innerHTML = specRows.filter(([, value]) => value).map(([label, value]) => `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></li>`).join('');
   document.querySelector('#previewDelivery').textContent = 'Free EU-wide shipping · 7 business days';
-}
-
-function updateDeliveryBadge(country = '') {
-  const delivery = regionDelivery[country] || euDeliveryEstimate;
-  const text = `Estimated Delivery: ${delivery}`;
-  const previewDelivery = document.querySelector('#previewDelivery');
-  if (previewDelivery) previewDelivery.textContent = text;
-  const checkoutDelivery = document.querySelector('#checkoutDelivery');
-  if (checkoutDelivery) checkoutDelivery.textContent = text;
 }
 
 function updatePreviewVariant() {
@@ -904,6 +852,22 @@ function cartTotal() {
   return cart.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
 }
 
+// Every checkout point hands the buyer to Stripe. A bag holding one item opens
+// that product's own payment link; a mixed bag returns the buyer to the products,
+// where each line carries the link that matches it.
+function goToCheckout() {
+  if (!cart.length) return;
+  const [single] = cart;
+  if (cart.length === 1 && single.product.paymentLink) {
+    window.open(single.product.paymentLink, '_blank', 'noopener,noreferrer');
+    return;
+  }
+  // The bag locks page scroll while it is open, so wait for its close
+  // transition (and the matching unlock) before scrolling to the products.
+  closeCart();
+  window.setTimeout(() => scrollToCollection('bikes-collection'), 760);
+}
+
 function renderCart(newVariantKey) {
   if (!cart.length) {
     cartItems.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
@@ -912,7 +876,7 @@ function renderCart(newVariantKey) {
   }
   cartItems.innerHTML = cart.map((item, index) => `<article class="cart-item${item.variantKey === newVariantKey ? ' is-new' : ''}" data-cart-index="${index}">
     <div class="cart-item-visual${item.product.collection === 'accessories' ? ' accessory-lift' : ''}">${item.product.image ? `<img class="product-image" src="${escapeHtml(item.product.image)}" alt="${escapeHtml(item.product.alt || item.product.name)}" decoding="async">` : `<div class="product-art" style="--art:${escapeHtml(variantColors[item.variant.frame] || item.product.color)}" data-mark="${escapeHtml(item.product.mark)}"></div>`}</div>
-    <div class="cart-item-info"><h3>${escapeHtml(item.product.name)}</h3><p>${escapeHtml(getVariantLabel(item.variant))} · ${euro(item.unitPrice)} each</p></div>
+    <div class="cart-item-info"><h3>${escapeHtml(item.product.name)}</h3><p>${escapeHtml(getVariantLabel(item.variant))} · ${euro(item.unitPrice)} each</p>${item.product.paymentLink ? `<a class="cart-buy-now" href="${escapeHtml(item.product.paymentLink)}" target="_blank" rel="noopener noreferrer" aria-label="Buy ${escapeHtml(item.product.name)} now — opens Stripe checkout in a new tab">Buy now <span aria-hidden="true">↗</span></a>` : ''}</div>
     <div class="cart-item-actions"><strong class="cart-item-total">${euro(item.unitPrice * item.quantity)}</strong><div class="cart-quantity"><button type="button" data-action="decrease" aria-label="Decrease ${item.product.name}">−</button><output>${item.quantity}</output><button type="button" data-action="increase" aria-label="Increase ${item.product.name}">+</button></div><button class="remove-item" type="button" data-action="remove">Remove</button></div>
   </article>`).join('');
   cartSubtotal.textContent = euro(cartTotal());
@@ -964,6 +928,9 @@ function addToCart(product, quantity, variant = selectedVariant, options = {}) {
 }
 
 function openCart() {
+  // The scroll lock is reference counted, so opening an already-open bag would
+  // take a lock that the single close never releases.
+  if (!cartModal.hidden || cartModal.classList.contains('closing')) return;
   renderCart();
   document.querySelector('#navBagButton').setAttribute('aria-expanded', 'true');
   rememberFocus();
@@ -981,112 +948,6 @@ function closeCart() {
   window.setTimeout(() => {
     cartModal.classList.remove('closing');
     cartModal.hidden = true;
-    unlockPageScroll();
-    restoreFocusIfNoOverlay();
-  }, 700);
-}
-
-// Shared line-item markup so the step-1 summary and the step-2 review always match.
-function checkoutLineMarkup(item) {
-  return `<div class="checkout-line"><span>${escapeHtml(item.product.name)}<small>${escapeHtml(getVariantLabel(item.variant))} × ${escapeHtml(item.quantity)}</small></span><strong>${euro(item.unitPrice * item.quantity)}</strong></div>`;
-}
-
-// Captured after the delivery form validates; saved or emailed only when the
-// customer confirms in the reserve step.
-function buildOrderPayload() {
-  const formData = Object.fromEntries(new FormData(orderForm));
-  return {
-    ...formData,
-    delivery: { country: formData.country, fullName: formData.fullName, email: formData.email, phone: formData.phone, address: formData.address, postcode: formData.postcode },
-    reference: currentReference,
-    items: cart.map((item) => ({ product: item.product.name, variant: getVariantLabel(item.variant), quantity: item.quantity, total: item.unitPrice * item.quantity })),
-    total: cartTotal(),
-    // Stripe is not verified yet, so every captured order is a reserve-mode request.
-    payment: { provider: 'stripe', status: 'pending', mode: 'reserve' },
-    createdAt: new Date().toISOString()
-  };
-}
-
-function flagInvalidOrderFields() {
-  let firstInvalid = null;
-  orderForm.querySelectorAll('input, select, textarea').forEach((field) => {
-    if (field.name === 'website') return;
-    const valid = field.checkValidity();
-    field.classList.toggle('is-invalid', !valid);
-    if (valid) {
-      field.removeAttribute('aria-invalid');
-    } else {
-      field.setAttribute('aria-invalid', 'true');
-      if (!firstInvalid) firstInvalid = field;
-    }
-  });
-  return firstInvalid;
-}
-
-function clearOrderFieldFlag(event) {
-  const field = event.target.closest('input, select, textarea');
-  if (!field || !field.classList.contains('is-invalid')) return;
-  if (field.checkValidity()) {
-    field.classList.remove('is-invalid');
-    field.removeAttribute('aria-invalid');
-  }
-  if (!orderForm.querySelector('.is-invalid')) setFormStatus(orderStatus, '');
-}
-
-function renderOrderReview(order) {
-  document.querySelector('#reviewItems').innerHTML = cart.map(checkoutLineMarkup).join('');
-  document.querySelector('#reviewSubtotal').textContent = euro(order.total);
-  document.querySelector('#reviewTotal').textContent = euro(order.total);
-  document.querySelector('#reviewTotalInline').textContent = euro(order.total);
-  document.querySelector('#reviewReference').textContent = order.reference;
-  const delivery = order.delivery;
-  document.querySelector('#reviewName').textContent = delivery.fullName;
-  document.querySelector('#reviewAddress').textContent = `${delivery.address}\n${delivery.postcode}, ${delivery.country}`;
-  document.querySelector('#reviewContact').textContent = `${delivery.email} · ${delivery.phone}`;
-  document.querySelector('#reviewDeliveryEstimate').textContent = `Estimated delivery: ${regionDelivery[delivery.country] || euDeliveryEstimate} · Free EU-wide shipping`;
-  setFormStatus(reviewStatus, '');
-}
-
-function showCheckoutStep(step) {
-  const reviewing = step === 2;
-  checkoutFormView.hidden = reviewing;
-  orderReview.hidden = !reviewing;
-  if (checkoutStep) checkoutStep.textContent = reviewing ? 'Checkout — Step 2 of 2' : 'Checkout — Step 1 of 2';
-  if (checkoutPageContent) checkoutPageContent.scrollTop = 0;
-  focusOverlayControl(reviewing ? '#reserveOrderButton' : '#fullName');
-}
-
-function openCheckout() {
-  if (!cart.length) return;
-  currentReference = makeOrderReference();
-  checkoutItems.innerHTML = cart.map(checkoutLineMarkup).join('');
-  document.querySelector('#summaryTotal').textContent = euro(cartTotal());
-  document.querySelector('#orderReference').textContent = currentReference;
-  document.querySelector('#confirmationFallback')?.remove();
-  updateDeliveryBadge(document.querySelector('#deliveryCountry')?.value || '');
-  pendingOrder = null;
-  setFormStatus(orderStatus, '');
-  setFormStatus(reviewStatus, '');
-  checkoutFormView.hidden = false;
-  orderReview.hidden = true;
-  if (checkoutStep) checkoutStep.textContent = 'Checkout — Step 1 of 2';
-  if (checkoutPageContent) checkoutPageContent.scrollTop = 0;
-  checkoutPageContent.hidden = false;
-  confirmation.hidden = true;
-  rememberFocus();
-  modal.hidden = false;
-  requestAnimationFrame(() => modal.classList.add('is-open'));
-  lockPageScroll();
-  focusOverlayControl('#fullName');
-}
-
-function closeCheckout() {
-  if (modal.hidden || modal.classList.contains('closing')) return;
-  modal.classList.add('closing');
-  modal.classList.remove('is-open');
-  window.setTimeout(() => {
-    modal.classList.remove('closing');
-    modal.hidden = true;
     unlockPageScroll();
     restoreFocusIfNoOverlay();
   }, 700);
@@ -1142,11 +1003,7 @@ productGrids.forEach((grid) => {
 document.querySelector('#bagButton').addEventListener('click', openCart);
 document.querySelector('#navBagButton').addEventListener('click', openCart);
 document.querySelector('#closeCart').addEventListener('click', closeCart);
-document.querySelector('#proceedToCheckout').addEventListener('click', () => {
-  if (!cart.length) return;
-  closeCart();
-  window.setTimeout(openCheckout, 320);
-});
+document.querySelector('#proceedToCheckout').addEventListener('click', goToCheckout);
 cartItems.addEventListener('click', (event) => {
   const actionButton = event.target.closest('[data-action]');
   const itemElement = event.target.closest('.cart-item');
@@ -1190,13 +1047,9 @@ document.querySelector('#previewCompareLink').addEventListener('click', () => {
   closePreview();
   window.setTimeout(() => openPreview(otherBike), 720);
 });
-document.querySelector('#deliveryCountry')?.addEventListener('change', (event) => updateDeliveryBadge(event.target.value));
 previewModal.addEventListener('click', (event) => { if (event.target === previewModal) closePreview(); });
 cartModal.addEventListener('click', (event) => { if (event.target === cartModal) closeCart(); });
-document.querySelector('#closeModal').addEventListener('click', closeCheckout);
-document.querySelector('#doneButton').addEventListener('click', closeCheckout);
 document.querySelectorAll('[data-home-link]').forEach((link) => link.addEventListener('click', returnHome));
-modal.addEventListener('click', (event) => { if (event.target === modal) closeCheckout(); });
 legalBackButton.addEventListener('click', () => {
   window.location.hash = 'top';
 });
@@ -1312,148 +1165,3 @@ document.querySelector('#supportInquiryForm').addEventListener('submit', async (
   }
 });
 
-orderForm.addEventListener('input', clearOrderFieldFlag);
-orderForm.addEventListener('change', clearOrderFieldFlag);
-
-// Step 1 only validates and shows the review — nothing is saved or emailed yet.
-orderForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  if (orderForm.dataset.sending === 'true') return;
-  if (isHoneypotFilled(orderForm)) return;
-  if (!cart.length) {
-    setFormStatus(orderStatus, 'Your bag is empty — add a bike or part before checking out.', 'warning');
-    return;
-  }
-  if (!orderForm.reportValidity()) {
-    const firstInvalid = flagInvalidOrderFields();
-    setFormStatus(orderStatus, 'Please complete every required delivery field before reviewing your order.', 'error');
-    if (firstInvalid) firstInvalid.focus();
-    return;
-  }
-  flagInvalidOrderFields();
-  setFormStatus(orderStatus, '');
-  pendingOrder = buildOrderPayload();
-  renderOrderReview(pendingOrder);
-  showCheckoutStep(2);
-  // Logged so the captured inputs and totals can be verified while Stripe is pending.
-  console.log('ETORQUED order payload captured (Stripe pending — reserve mode):', pendingOrder);
-});
-
-editOrderButton.addEventListener('click', () => showCheckoutStep(1));
-
-// Step 2 — Stripe is not verified yet, so the review step reserves the unit,
-// keeps the order record, and emails the invoice next steps without any charge.
-reserveOrderButton.addEventListener('click', async () => {
-  if (!pendingOrder || reserveOrderButton.dataset.sending === 'true') return;
-  if (!cart.length) {
-    setFormStatus(reviewStatus, 'Your bag is empty — add an item before reserving.', 'warning');
-    return;
-  }
-  const order = pendingOrder;
-  const formData = order.delivery;
-  const itemCount = order.items.length;
-  const deliveryEstimate = regionDelivery[formData.country] || euDeliveryEstimate;
-  const orders = JSON.parse(localStorage.getItem('etorqued-orders') || '[]');
-  orders.push(order);
-  localStorage.setItem('etorqued-orders', JSON.stringify(orders));
-  const sharedParams = {
-    order_reference: order.reference,
-    order_items: order.items.map((item) => `${item.product} — ${item.variant} × ${item.quantity} — ${euro(item.total)}`).join('\n'),
-    order_total: euro(order.total),
-    // Structured rows for the branded HTML template. The plain-text list above
-    // still powers the text fallback and the manual mailto link.
-    order_items_html: order.items
-      .map((item) => `<tr><td valign="top" style="padding:14px 0;border-bottom:1px solid #dedede;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#111111;">${escapeHtml(item.product)}<br><span style="font-size:10px;color:#777777;">${escapeHtml(item.variant)} &times; ${escapeHtml(item.quantity)}</span></td><td align="right" valign="top" style="padding:14px 0;border-bottom:1px solid #dedede;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#111111;white-space:nowrap;">${euro(item.total)}</td></tr>`)
-      .join(''),
-    order_item_count: String(itemCount),
-    order_date: new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(order.createdAt)),
-    // Reserve mode: the unit is held, but no card payment has been taken.
-    payment_note: 'Payment not taken yet — this order is reserved pending invoice.',
-    site_url: 'https://etorqued.com',
-    year: String(new Date(order.createdAt).getUTCFullYear()),
-    delivery_region: formData.country,
-    delivery_estimate: deliveryEstimate,
-    customer_name: formData.fullName,
-    customer_email: formData.email,
-    customer_phone: formData.phone,
-    address: formData.address,
-    postcode: formData.postcode,
-    support_email: SUPPORT_EMAIL
-  };
-
-  reserveOrderButton.dataset.sending = 'true';
-  reserveOrderButton.disabled = true;
-  const originalLabel = reserveOrderButton.innerHTML;
-  reserveOrderButton.textContent = 'Reserving your unit…';
-  setFormStatus(reviewStatus, 'Reserving your unit and notifying our team…');
-  console.log('ETORQUED reserve order submitted (payment pending):', order);
-
-  // One template, two recipients: the merchant copy goes to etorqued@gmail.com
-  // with reply-to set to the customer, the customer copy goes to the address
-  // they entered and replies come back to the support inbox.
-  const [merchantResult, customerResult] = await Promise.all([
-    sendEmail(emailConfig.orderTemplateId, {
-      ...sharedParams,
-      to_email: SUPPORT_EMAIL,
-      to_name: 'ETORQUED',
-      reply_to: formData.email,
-      role_subject: `New order ${currentReference} — ${euro(order.total)}`,
-      role_preheader: `New order ${currentReference} — ${euro(order.total)} from ${formData.fullName}.`,
-      role_eyebrow: 'New order received',
-      role_headline: 'New order — action needed',
-      role_intro: 'A new order was placed on the storefront. Fulfilment details are below — reply to this email to reach the customer directly.',
-      role_next_step: `Reply to this email to reach ${formData.fullName}, raise the invoice, and confirm the delivery window.`,
-      role_button_label: `Reply to ${formData.fullName}`,
-      role_button_url: `mailto:${formData.email}?subject=${encodeURIComponent(`Your ETORQUED order ${currentReference}`)}`
-    }),
-    sendEmail(emailConfig.orderTemplateId, {
-      ...sharedParams,
-      to_email: formData.email,
-      to_name: formData.fullName,
-      reply_to: SUPPORT_EMAIL,
-      role_subject: `Your ETORQUED order ${currentReference}`,
-      role_preheader: `Order ${currentReference} — ${euro(order.total)}. Here is your confirmation.`,
-      role_eyebrow: 'Order confirmed',
-      role_headline: 'Your order is in',
-      role_intro: 'Thanks for your order — here is a copy of what we received.',
-      role_next_step: 'Next: we email your invoice and a secure payment link, then confirm your delivery window.',
-      role_button_label: 'Email us about this order',
-      role_button_url: `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Order ${currentReference}`)}`
-    })
-  ]);
-
-  reserveOrderButton.dataset.sending = 'false';
-  reserveOrderButton.disabled = false;
-  reserveOrderButton.innerHTML = originalLabel;
-  setFormStatus(reviewStatus, '');
-
-  document.querySelector('#confirmationText').textContent = `Your unit is reserved under ${order.reference} — ${itemCount} item${itemCount === 1 ? '' : 's'}, ${euro(order.total)}. Card payment is not live yet (Stripe verification pending), so we’ll email your invoice and a secure payment link to ${formData.email} to confirm delivery.`;
-  document.querySelector('#confirmationFallback')?.remove();
-  if (!merchantResult.ok || !customerResult.ok) {
-    const fallback = document.createElement('p');
-    fallback.id = 'confirmationFallback';
-    fallback.className = 'form-status';
-    const link = document.createElement('a');
-    const subject = encodeURIComponent(`Order ${currentReference}`);
-    const body = encodeURIComponent(`Reference: ${currentReference}\nTotal: ${euro(order.total)}\n\n${sharedParams.order_items}\n\nName: ${formData.fullName}\nDeliver to: ${formData.address}, ${formData.postcode}, ${formData.country}`);
-    link.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
-    link.textContent = SUPPORT_EMAIL;
-    // A queued message is not lost: it is stored in this browser and retried
-    // until it leaves, so the wording must not read like a dead end.
-    fallback.append(
-      merchantResult.queued || customerResult.queued
-        ? 'Your confirmation email could not be sent yet — it is saved and we’ll keep retrying automatically. You can also email us at '
-        : 'An automatic copy of this order could not be sent. Email us at ',
-      link,
-      ` and quote your reference ${currentReference} so we can raise your invoice.`
-    );
-    document.querySelector('#confirmationText').after(fallback);
-  }
-  cart.length = 0;
-  updateBagBadge();
-  renderCart();
-  pendingOrder = null;
-  checkoutPageContent.hidden = true;
-  confirmation.hidden = false;
-  focusOverlayControl('#doneButton');
-});
