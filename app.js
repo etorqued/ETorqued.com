@@ -354,6 +354,7 @@ const cartToast = document.querySelector('#cartToast');
 const mobileMenu = document.querySelector('#mobileMenu');
 const mobileMenuButton = document.querySelector('#mobileMenuButton');
 let cartToastTimer;
+let cartToastHideTimer;
 let selectedProduct = products[0];
 let scrollLockCount = 0;
 let currentScrollY = 0;
@@ -838,27 +839,49 @@ function updateBagBadge() {
   document.querySelector('#navBagButton').setAttribute('aria-label', label);
 }
 
-function showCartToast() {
+// The one shared toast, used both for "Item added to Bag" and for the bag
+// guardrail below. An error variant announces itself assertively and stays up
+// long enough to read.
+function showCartToast(message = 'Item added to Bag', { variant = 'info', duration = 2200 } = {}) {
+  if (!cartToast) return;
+  const isError = variant === 'error';
+  // Both timers are cleared, not just the visible one: a stale hide step left
+  // over from the previous toast would otherwise hide this one 300ms in.
   window.clearTimeout(cartToastTimer);
+  window.clearTimeout(cartToastHideTimer);
+  cartToast.textContent = message;
+  cartToast.classList.toggle('is-error', isError);
+  cartToast.setAttribute('role', isError ? 'alert' : 'status');
+  cartToast.setAttribute('aria-live', isError ? 'assertive' : 'polite');
   cartToast.hidden = false;
-  requestAnimationFrame(() => cartToast.classList.add('is-visible'));
+  // Drop and re-apply the class across a forced reflow so the entrance
+  // transition replays instead of being skipped on an already-shown toast.
+  cartToast.classList.remove('is-visible');
+  void cartToast.offsetWidth;
+  cartToast.classList.add('is-visible');
   cartToastTimer = window.setTimeout(() => {
     cartToast.classList.remove('is-visible');
-    window.setTimeout(() => { cartToast.hidden = true; }, 300);
-  }, 2200);
+    cartToastHideTimer = window.setTimeout(() => { cartToast.hidden = true; }, 300);
+  }, duration);
 }
 
 function cartTotal() {
   return cart.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
 }
 
-// Every checkout point hands the buyer to Stripe. A bag holding one item opens
-// that product's own payment link; a mixed bag returns the buyer to the products,
-// where each line carries the link that matches it.
+const CHECKOUT_ONE_AT_A_TIME = 'Please note: Due to specialized shipping, items must be checked out 1 at a time. Please adjust your bag quantity to 1 item to proceed.';
+
+// Every checkout point hands the buyer to Stripe, but only one unit at a time:
+// specialised shipping means a bag holding more than one item is stopped here
+// rather than sent to a payment link that cannot cover it.
 function goToCheckout() {
   if (!cart.length) return;
+  if (getCartCount() > 1) {
+    showCartToast(CHECKOUT_ONE_AT_A_TIME, { variant: 'error', duration: 9000 });
+    return;
+  }
   const [single] = cart;
-  if (cart.length === 1 && single.product.paymentLink) {
+  if (single.product.paymentLink) {
     window.open(single.product.paymentLink, '_blank', 'noopener,noreferrer');
     return;
   }
