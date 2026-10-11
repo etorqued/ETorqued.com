@@ -1,4 +1,14 @@
 User-agent: *
 Allow: /
 
+# Internal working documents (setup guides, email templates, the email preview
+# tool) live in _internal/. GitHub Pages does not serve underscore-prefixed
+# paths, so these should already 404; the rules below keep any stray copy or
+# old cached URL out of search results.
+Disallow: /_internal/
+Disallow: /EMAIL-SETUP.md
+Disallow: /TRADING-SETUP.md
+Disallow: /email-preview.html
+Disallow: /emails/
+
 Sitemap: https://etorqued.com/sitemap.xml
