@@ -32,6 +32,84 @@ const emailConfig = {
   inquiryTemplateId: 'template_syi6di4'
 };
 
+/* ── Google Analytics, gated behind consent ──────────────────────────────────
+   GA4 writes cookies to the visitor's device and routes the data to Google,
+   so it is not loaded until the visitor has agreed to it. Nothing in this
+   block contacts Google before that point: the loader script is injected only
+   after consent is stored, and answering “no thanks” records the refusal so
+   the banner stays away and the network stays silent.
+
+   The choice is kept in localStorage under etorqued-analytics-consent and can
+   be withdrawn from the Cookie Policy, which clears it and reloads the page.
+   The measurement ID is a public identifier and is meant to ship in this file.
+   ──────────────────────────────────────────────────────────────────────────── */
+const analyticsMeasurementId = 'G-5H9EYQRZ47';
+const ANALYTICS_CONSENT_KEY = 'etorqued-analytics-consent';
+let analyticsStarted = false;
+let analyticsHashListenerAttached = false;
+
+function readAnalyticsConsent() {
+  try {
+    return localStorage.getItem(ANALYTICS_CONSENT_KEY);
+  } catch {
+    return null; // Storage can be blocked entirely; treat that as no choice.
+  }
+}
+
+function writeAnalyticsConsent(choice) {
+  try {
+    localStorage.setItem(ANALYTICS_CONSENT_KEY, choice);
+  } catch {
+    // A refusal or acceptance we cannot remember still applies to this page load.
+  }
+}
+
+function clearAnalyticsConsent() {
+  try {
+    localStorage.removeItem(ANALYTICS_CONSENT_KEY);
+  } catch {
+    // Nothing to clear if storage is unavailable.
+  }
+  expireAnalyticsCookies();
+}
+
+/* Google Analytics sets its cookies on this site's own domain with path /, so
+   they are expired here rather than left behind: same name, same path, same
+   domain, an expiry in the past. Anything else matching _ga_ is swept up too,
+   since a measurement ID change would otherwise orphan a cookie. */
+function expireAnalyticsCookies() {
+  const names = document.cookie.split(';').map((cookie) => cookie.split('=')[0].trim())
+    .filter((name) => name === '_ga' || name.startsWith('_ga_'));
+  for (const name of names) {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+  }
+}
+
+function startAnalytics() {
+  if (analyticsStarted || !analyticsMeasurementId) return;
+  analyticsStarted = true;
+  window.dataLayer = window.dataLayer || [];
+  const gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag = gtag;
+  gtag('js', new Date());
+  gtag('config', analyticsMeasurementId, { anonymize_ip: true, send_page_view: true });
+  const loader = document.createElement('script');
+  loader.async = true;
+  loader.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsMeasurementId}`;
+  document.head.appendChild(loader);
+  trackAnalyticsPageViewsOnHashChange(gtag);
+}
+
+/* The storefront is hash-routed, so a plain config only counts the first page.
+   Every later hash change is sent as its own page view. */
+function trackAnalyticsPageViewsOnHashChange(gtag) {
+  if (analyticsHashListenerAttached) return;
+  analyticsHashListenerAttached = true;
+  window.addEventListener('hashchange', () => {
+    gtag('event', 'page_view', { page_location: window.location.href, page_title: document.title });
+  });
+}
+
 /* ── Retry queue for failed sends ───────────────────────────────────────────
    There is no server here to catch a failed email, so a send that does not
    leave is written to localStorage and retried instead of being lost: shortly
@@ -391,22 +469,23 @@ let currentLegalSlug = '';
 let legalCloseTimer;
 
 const legalPages = [
-  { slug: 'privacy-policy', title: 'Privacy Policy', description: 'How ETorqued handles personal information: the support form, Stripe payments, browser storage, and your data protection rights.', sections: [
-    ['Information we collect', '<p>This storefront is a catalogue with a link out to Stripe for payment, so it holds very little information about you. There is no account system, no order form, and no analytics.</p><ul><li><b>Support inquiries.</b> When you use the Support form we receive the name, email address and message you type, together with the date and time. Those details are emailed to our support inbox and are not stored on this website.</li><li><b>Temporary retry storage.</b> If an inquiry email cannot be sent, the message is kept in your own browser so it can be retried automatically, and it is deleted once it has been sent.</li><li><b>Bag contents.</b> Your bag is held only in the memory of the page you are viewing. It is never stored on your device and never sent to us, and it empties when the page is reloaded or closed.</li></ul><p>We never receive your full payment card details, because payment is completed on Stripe’s own site. We do not use cookies, tracking pixels, advertising identifiers or analytics, and we do not build profiles or make automated decisions about you.</p>'],
+  { slug: 'privacy-policy', title: 'Privacy Policy', description: 'How ETorqued handles personal information: the support form, Stripe payments, optional analytics, browser storage, and your data protection rights.', sections: [
+    ['Information we collect', '<p>This storefront is a catalogue with a link out to Stripe for payment, so it holds very little information about you. There is no account system and no order form.</p><ul><li><b>Support inquiries.</b> When you use the Support form we receive the name, email address and message you type, together with the date and time. Those details are emailed to our support inbox and are not stored on this website.</li><li><b>Temporary retry storage.</b> If an inquiry email cannot be sent, the message is kept in your own browser so it can be retried automatically, and it is deleted once it has been sent.</li><li><b>Bag contents.</b> Your bag is held only in the memory of the page you are viewing. It is never stored on your device and never sent to us, and it empties when the page is reloaded or closed.</li><li><b>Your cookie choice.</b> If you answer the cookie banner, that answer is stored in your own browser so we can remember whether you agreed to analytics, and it is not sent to us.</li></ul><p>We never receive your full payment card details, because payment is completed on Stripe’s own site, and we do not use advertising identifiers, tracking pixels or advertising networks.</p>'],
     ['How we use information', '<p>We use the information described above only to:</p><ul><li>reply to your inquiry and answer product or order questions;</li><li>fulfil and deliver orders you place through Stripe, and keep the sales records we are legally required to keep;</li><li>operate the storefront, keep it secure, and diagnose faults.</li></ul><p>We do not sell your information and we do not use it for marketing without your permission. Where we rely on your consent you may withdraw it at any time, and where we rely on our legitimate interest in running and protecting the storefront you may object to that processing, as explained under your rights below.</p>'],
-    ['Cookies and your browser', '<p>This storefront sets no cookies at all, and shows no consent banner because there is nothing non-essential to consent to. The only thing it ever writes to your browser is a temporary retry record for an inquiry email that could not be sent: it holds the message you typed and is removed as soon as that message goes out. No analytics, advertising or third-party scripts run on these pages. See the <a href="#legal/cookie-policy">Cookie Policy</a> for the detail.</p>'],
-    ['Payments and service providers', '<p>Checkout is handled entirely by Stripe. When you click a Buy now or checkout button you leave this storefront and pay on Stripe’s own secure page, which collects your card details, email address and delivery information under <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe’s own privacy policy</a>. We never see or store your card number. Stripe then tells us what was ordered and where to send it, so that we can deliver the order and keep the records we are required to keep.</p><p>The other providers involved are <b>EmailJS</b> (United States), which delivers the support-inquiry email and therefore receives your IP address, name, email address and message at the moment you submit the form, and <b>GitHub Pages</b> (United States), which hosts the site and records standard request logs including IP addresses in order to serve and protect it. Payments are processed by <b>Stripe Payments Europe, Ltd</b> (Ireland). Where these providers handle information in the United States they do so under the transfer safeguards they offer, such as standard contractual clauses.</p>'],
+    ['Cookies and your browser', '<p>The storefront itself sets no cookies, and uses no advertising or tracking pixels. The only thing it always writes to your browser is a temporary retry record for an inquiry email that could not be sent: it holds the message you typed and is removed as soon as that message goes out.</p><p>Google Analytics is the one exception, and it is entirely optional. It is not loaded until you accept the cookie banner, so if you decline — or never answer — the storefront sets no cookies at all. See the <a href="#legal/cookie-policy">Cookie Policy</a> for the detail, including how to withdraw your choice later.</p>'],
+    ['Analytics, and how to refuse it', '<p>This storefront uses <b>Google Analytics</b> to see how many people visit, which pages they look at and how long they stay, so that we can see what is worth improving. Google sets two cookies on this site (<code>_ga</code> and <code>_ga_…</code>), and receives your IP address, browser details, the page you viewed and when.</p><p><b>None of that happens unless you accept the cookie banner.</b> The analytics code is not loaded at all until you agree, and it is not loaded if you refuse. You can change your mind at any time from the <a href="#legal/cookie-policy">Cookie Policy</a>, and clearing your browser’s site data has the same effect. We only use the aggregated reports Google shows us; we do not use it to identify who you are, to build profiles about you, or to make automated decisions about you.</p>'],
+    ['Payments and service providers', '<p>Checkout is handled entirely by Stripe. When you click a Buy now or checkout button you leave this storefront and pay on Stripe’s own secure page, which collects your card details, email address and delivery information under <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe’s own privacy policy</a>. We never see or store your card number. Stripe then tells us what was ordered and where to send it, so that we can deliver the order and keep the records we are required to keep.</p><p>The other providers involved are <b>Google Analytics</b> (United States), which measures use of the storefront and only if you accept the cookie banner; <b>EmailJS</b> (United States), which delivers the support-inquiry email and therefore receives your IP address, name, email address and message at the moment you submit the form; and <b>GitHub Pages</b> (United States), which hosts the site and records standard request logs including IP addresses in order to serve and protect it. Payments are processed by <b>Stripe Payments Europe, Ltd</b> (Ireland). Where these providers handle information in the United States they do so under the transfer safeguards they offer, such as standard contractual clauses.</p>'],
     ['Your rights', '<p>Because we hold very little about you, most requests are quick to answer. You have the right to ask for a copy of the information we hold about you, to have it corrected or deleted, to restrict or object to how we use it, and to receive it in a portable format. Where we rely on consent you can withdraw it at any time, without affecting anything done before you withdrew it.</p><p>Email <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a> and we will respond within one month, although we may need to confirm your identity first. If you are not satisfied with our response you can complain to the Irish Data Protection Commission (<a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer">dataprotection.ie</a>) or to the supervisory authority in your own country.</p>'],
-    ['Retention and security', '<p>Support inquiries are kept in our support inbox for up to 24 months so that we can deal with follow-up questions, and are then deleted. Order and accounting records supplied by Stripe are kept for six years, which is what Irish tax law requires. The retry record in your browser disappears as soon as the message is sent, and the contents of your bag are never stored at all.</p><p>This site is served over an encrypted HTTPS connection. Card details are entered only on Stripe’s servers and never reach this website, so no card data is held here. If we ever became aware of a breach affecting your information we would inform you and the Data Protection Commission, as the law requires.</p>'],
+    ['Retention and security', '<p>Support inquiries are kept in our support inbox for up to 24 months so that we can deal with follow-up questions, and are then deleted. Order and accounting records supplied by Stripe are kept for six years, which is what Irish tax law requires. The retry record in your browser disappears as soon as the message is sent, and the contents of your bag are never stored at all.</p><p>Google keeps the usage data behind our analytics reports for <b>14 months</b> and then deletes it; we cannot retrieve anything beyond that window. Your cookie choice stays on your own device until you clear it.</p><p>This site is served over an encrypted HTTPS connection. Card details are entered only on Stripe’s servers and never reach this website, so no card data is held here. If we ever became aware of a breach affecting your information we would inform you and the Data Protection Commission, as the law requires.</p>'],
     ['Contact', '<p>For any privacy question or request, email <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a>. Who we are, and our registered details, are set out on the <a href="#legal/company-information">Company Information</a> page.</p>']
   ]},
-  { slug: 'cookie-policy', title: 'Cookie Policy', description: 'What the ETorqued storefront stores in your browser, why it needs no cookie banner, and how to clear it.', sections: [
+  { slug: 'cookie-policy', title: 'Cookie Policy', description: 'What the ETorqued storefront stores in your browser, the analytics cookies the banner controls, and how to withdraw your choice.', sections: [
     ['Cookies and similar storage', '<p>A cookie is a small file that a website asks your browser to store so that it can recognise you later. “Similar storage” covers technologies that keep data in your browser without involving a server at all, such as <i>localStorage</i>. Both matter when they identify you or follow you between sites.</p>'],
-    ['Cookies this site sets', '<p>None. The storefront does not set a single cookie, which is why you are never asked to accept one. Your bag lives in the memory of the open page and disappears when you reload or close it, and no identifier is written to your device to follow you around the web.</p>'],
-    ['The one thing stored in your browser', '<p>If a support-inquiry email fails to send — because you went offline, for example — the message is saved in your browser’s <i>localStorage</i> under the key <code>etorqued-email-queue</code> so that it can be retried automatically. It contains the name, email address and message you typed, it never leaves your device except to be emailed, and it is deleted as soon as the message is delivered. It is strictly necessary to provide the service you asked for, so it does not require consent, and clearing your browser’s site data removes it.</p>'],
-    ['Third-party cookies', '<p>No third-party scripts run on these pages, so no third party is able to set a cookie here. When you click through to pay, you are on Stripe’s own site and Stripe applies its own cookies under its own privacy policy; the same is true of the social link in our footer.</p>'],
-    ['Why there is no cookie banner', '<p>A consent banner is required when a site wants to do something non-essential, such as analytics or advertising. This storefront loads no analytics, no advertising and no tracking pixels, so there is nothing to ask you about and nothing for you to switch off. If we ever add analytics or advertising, we will ask for your consent first and load nothing until you agree.</p>'],
-    ['Clearing what is stored', '<p>You can clear anything a site has stored in your browser at any time through your browser’s settings, usually under privacy or site data, and the retry record described above will go with it. Blocking JavaScript or browser storage may stop the bag and the support form from working, because both need those features. Questions about any of this can go to <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a>.</p>']
+    ['Cookies we set', '<p>One, and only if you agree to it. Accepting the cookie banner lets Google Analytics set <code>_ga</code> and <code>_ga_…</code> on this site’s domain, so that a returning visitor is counted once rather than on every page. Declining, or simply ignoring the banner, sets neither one. Nothing else on this storefront writes a cookie, and your bag still lives only in the memory of the open page and disappears when you reload or close it.</p>'],
+    ['What is stored in your browser', '<p>Two things, neither of which is sent to us unless you act. The first is your cookie choice, stored under the key <code>etorqued-analytics-consent</code> so the banner does not ask again. The second is a retry record: if a support-inquiry email fails to send — because you went offline, for example — the message is saved under the key <code>etorqued-email-queue</code> so it can be retried automatically. That record contains the name, email address and message you typed, it never leaves your device except to be emailed, and it is deleted as soon as the message is delivered. It is strictly necessary to provide the service you asked for, so it does not require consent, and clearing your browser’s site data removes both.</p>'],
+    ['Third-party cookies', '<p>Google Analytics is the only third party able to set a cookie here, and it only does so if you accept the banner — its cookies are set on this site’s domain, not on Google’s. When you click through to pay you are on Stripe’s own site and Stripe applies its own cookies under its own privacy policy, and the same is true of the social link in our footer.</p>'],
+    ['The cookie banner', '<p>The banner asks a single question, and we have answered it honestly: the analytics it controls are optional and the store works exactly the same either way. Choosing <i>Accept analytics</i> loads Google Analytics for that visit and remembers your choice. Choosing <i>No thanks</i> records the refusal, and nothing is sent to Google on that visit or any later one. Ignoring the banner does the same as refusing, because nothing loads until you agree.</p><p>To change your answer later, <a href="#" id="resetAnalyticsConsent">reset your cookie choice</a> — the choice is forgotten, any Google Analytics cookies are removed from your browser, and the banner asks again straight away.</p>'],
+    ['Clearing what is stored', '<p>You can clear anything a site has stored in your browser at any time through your browser’s settings, usually under privacy or site data. Doing so removes the retry record described above, your cookie choice, and any Google Analytics cookies, so the banner will ask again next time. Blocking JavaScript or browser storage may stop the bag and the support form from working, because both need those features. Questions about any of this can go to <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a>.</p>']
   ]},
   { slug: 'terms-and-conditions', title: 'Terms & Conditions', description: 'The terms that apply when you order from ETORQUED: orders and pricing, payment, delivery, product use, liability and how complaints are handled.', sections: [
     ['These terms', '<p>These terms apply when you order from the ETORQUED storefront, and by placing an order you agree to them. Nothing in them limits the rights you have as a consumer under the law that applies to you, and where these terms and your statutory rights conflict, your statutory rights take priority.</p>'],
@@ -1189,5 +1268,51 @@ document.querySelector('#supportInquiryForm').addEventListener('submit', async (
     submitButton.innerHTML = originalLabel;
     setFormStatus(inquiryStatus, `We couldn’t send that automatically. Email ${SUPPORT_EMAIL} directly and we’ll pick it up.`);
   }
+});
+
+/* ── Cookie consent banner ──────────────────────────────────────────────────
+   The banner is the switch that decides whether analytics loads at all, so it
+   appears only when no choice has been stored yet. Accepting starts GA4 on the
+   spot; declining keeps it off and remembers that, so the bar never returns.
+   Withdrawing consent is handled from the Cookie Policy, which clears the
+   stored choice and reloads so nothing from Google survives the change.
+   ─────────────────────────────────────────────────────────────────────────── */
+const cookieBanner = document.querySelector('#cookieBanner');
+const cookieAcceptButton = document.querySelector('#cookieAccept');
+const cookieDeclineButton = document.querySelector('#cookieDecline');
+
+function hideCookieBanner() {
+  if (cookieBanner) cookieBanner.hidden = true;
+}
+
+if (cookieBanner) {
+  const storedConsent = readAnalyticsConsent();
+  if (storedConsent === 'accepted') {
+    hideCookieBanner();
+    startAnalytics();
+  } else if (storedConsent === 'declined') {
+    hideCookieBanner();
+  } else {
+    cookieBanner.hidden = false;
+  }
+
+  cookieAcceptButton?.addEventListener('click', () => {
+    writeAnalyticsConsent('accepted');
+    startAnalytics();
+    hideCookieBanner();
+  });
+
+  cookieDeclineButton?.addEventListener('click', () => {
+    writeAnalyticsConsent('declined');
+    hideCookieBanner();
+  });
+}
+
+/* “Change your mind” on the Cookie Policy: forget the choice and reload so the
+   analytics cookies go with it. */
+document.querySelector('#resetAnalyticsConsent')?.addEventListener('click', (event) => {
+  event.preventDefault();
+  clearAnalyticsConsent();
+  window.location.reload();
 });
 
