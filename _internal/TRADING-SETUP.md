@@ -72,10 +72,30 @@ possible gift to or from them, and can raise gift-tax (CAT) questions. The
 
 ## Step 4 — Put the same identity on the website
 
-- The legal pages currently read `[ADD REGISTERED COMPANY NAME]`,
-  `[ADD REGISTERED ADDRESS]`, `[ADD VAT NUMBER OR CONFIRM NOT APPLICABLE]`.
-  Replace them with your legal name, trading name, business address and support
-  email.
+- **Done — published 12 October 2026.** The Company Information page
+  (`#legal/company-information`) now shows: trading name `ETORQUED`; business
+  address `29 Mill Race`; company registration number `Not applicable (sole
+  trader)`; VAT number `Not VAT registered`; support email `etorqued@gmail.com`;
+  operating region "European Union (EU-only shipping)". The legal-name row was
+  dropped deliberately: EU distance-selling rules accept the trading name as the
+  trader's identity, so no personal name is published on the site.
+- **Known weakness — the published address does not locate the business.**
+  `29 Mill Race` has no town or county, so a customer, courier or regulator
+  cannot use it. The Consumer Rights Act 2022 (Schedule 3) requires "the
+  geographical address at which the trader is established", and the European
+  Commission's interpretative guidance (OJ C 525/2021, section 3.2.2) states that
+  it is "not sufficient to merely provide the PO Box number as the trader's
+  address" — a fragment is no safer. Note also that truncating the address does
+  not buy privacy: section 4 of the Registration of Business Names Act 1963
+  requires the principal place of business *and* the individual's usual
+  residence, section 16 lets any person inspect the filed record on payment of a
+  fee, and the RBN1 completion notes (S.I. 291/2002) require the **full postal
+  address in the State** and reject a Post Office box or "care of" address.
+- **Fix when ready:** move to a business-address service that expressly permits
+  use as the trading address and accepts consumer, courier and CRO
+  correspondence (Irish providers advertise from around EUR 149/year + VAT),
+  then update the website field and the Revenue/CRO records together. Confirm
+  with your accountant before filing RBN1.
 - The trader named on the site must be the same trader on the Revenue registration
   and the CRO record. Mismatches between the site, the bank and Revenue are what
   create ambiguity later.

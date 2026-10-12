@@ -449,10 +449,10 @@ const legalPages = [
     ['Order support instructions', '<p>Include your order reference, full name, delivery country, and a concise description of the issue. For damaged or faulty items, include clear photographs and keep the packaging until the support team advises.</p>'],
     ['Contact form', '<p>For a direct request, use <a class="legal-contact-link" href="mailto:etorqued@gmail.com?subject=ETORQUED%20support%20request">Email customer support →</a>. A server-backed contact form can be added once the business confirms its mail handling and privacy process.</p>']
   ]},
-  { slug: 'company-information', title: 'Company Information', description: 'Draft ETorqued company information page with placeholders for required business details.', sections: [
-    ['Business identity', '<dl class="legal-details"><div><dt>Legal business name</dt><dd>[ADD REGISTERED COMPANY NAME]</dd></div><div><dt>Trading name</dt><dd>ETORQUED</dd></div><div><dt>Registered address</dt><dd>[ADD REGISTERED ADDRESS]</dd></div><div><dt>Company registration number</dt><dd>[ADD COMPANY REGISTRATION NUMBER]</dd></div><div><dt>VAT number</dt><dd>[ADD VAT NUMBER OR CONFIRM NOT APPLICABLE]</dd></div><div><dt>Support email</dt><dd><a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a></dd></div><div><dt>Operating region</dt><dd>European Union (EU-only shipping)</dd></div></dl>'],
-    ['Customer support', '<p>For product and order support, email <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a>. The business should add its confirmed support hours and response target before publication.</p>'],
-    ['Publication note', '<p>This page intentionally uses placeholders where the existing storefront does not provide verified company information. Replace every bracketed item and have the complete legal information reviewed before publishing.</p>']
+  { slug: 'company-information', title: 'Company Information', description: 'How to identify and contact ETorqued: legal and trading name, business address, support email and operating region.', sections: [
+    ['Business identity', '<dl class="legal-details"><div><dt>Trading name</dt><dd>ETORQUED</dd></div><div><dt>Business address</dt><dd>29 Mill Race</dd></div><div><dt>Company registration number</dt><dd>Not applicable (sole trader)</dd></div><div><dt>VAT number</dt><dd>Not VAT registered</dd></div><div><dt>Support email</dt><dd><a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a></dd></div><div><dt>Operating region</dt><dd>European Union (EU-only shipping)</dd></div></dl>'],
+    ['Customer support', '<p>For product and order support, email <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a> with your order reference and delivery country. We aim to respond as soon as reasonably possible.</p>'],
+    ['Why these details are published', '<p>These details are published so that you can identify and contact the trader behind ETORQUED before you place an order, as EU distance-selling rules require. If any of them change, this page is updated.</p><p>Nothing on this page limits your statutory consumer rights, and any complaint can be raised directly with <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a>.</p>']
   ]}
 ];
 
@@ -570,7 +570,7 @@ function closeInfoModal(infoModal) {
 function renderLegalPage(page) {
   legalPageTitle.textContent = page.title;
   legalPageKicker.textContent = `ETorqued / ${page.title}`;
-  legalPageUpdated.textContent = 'Last updated: 11 October 2026';
+  legalPageUpdated.textContent = 'Last updated: 12 October 2026';
   legalPageBody.innerHTML = page.sections.map(([heading, content], index) => `<section class="legal-section" aria-labelledby="legal-section-${index}"><h2 id="legal-section-${index}">${heading}</h2>${content}</section>`).join('');
   legalPageNav.innerHTML = legalPages.map((item) => `<a href="#legal/${item.slug}"${item.slug === page.slug ? ' aria-current="page"' : ''}>${item.title}</a>`).join('');
   document.title = `${page.title} — ETORQUED`;
