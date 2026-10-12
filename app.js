@@ -851,8 +851,12 @@ function renderBikeDetails(product) {
   const bestFor = document.querySelector('#previewBestFor');
   const useCases = document.querySelector('#previewUseCases');
   const bikeSpecs = document.querySelector('#previewSpecs');
-  bikeDetails.hidden = product.collection !== 'bikes';
-  if (product.collection !== 'bikes') return;
+  const legalUse = document.querySelector('#previewLegalUse');
+  const isBike = product.collection === 'bikes';
+  bikeDetails.hidden = !isBike;
+  // The off-road notice is about motor vehicles, so it never shows on a plate.
+  if (legalUse) legalUse.hidden = !isBike;
+  if (!isBike) return;
 
   document.querySelector('#previewRiderFitGuidance').textContent = product.riderFitGuidance;
   document.querySelector('#previewRange').textContent = product.range;
