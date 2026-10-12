@@ -125,6 +125,29 @@ function trackAnalyticsPageViewsOnHashChange(gtag) {
   });
 }
 
+/* The actions worth counting are reported as the events GA4's own reports are
+   built around: add_to_cart, begin_checkout, and generate_lead for a support
+   inquiry. Nothing is sent unless Analytics is already running, which only
+   happens once consent is in place — calling this never loads it by itself. */
+function trackAnalyticsEvent(name, params) {
+  if (!analyticsStarted || typeof window.gtag !== 'function') return;
+  window.gtag('event', name, params);
+}
+
+function checkoutEventParams(item) {
+  return {
+    currency: 'EUR',
+    value: item.unitPrice * item.quantity,
+    items: [{
+      item_id: item.product.id,
+      item_name: item.product.name,
+      item_variant: getVariantLabel(item.variant),
+      price: item.unitPrice,
+      quantity: item.quantity
+    }]
+  };
+}
+
 /* ── Retry queue for failed sends ───────────────────────────────────────────
    There is no server here to catch a failed email, so a send that does not
    leave is written to localStorage and retried instead of being lost: shortly
@@ -488,7 +511,7 @@ const legalPages = [
     ['Information we collect', '<p>This storefront is a catalogue with a link out to Stripe for payment, so it holds very little information about you. There is no account system and no order form.</p><ul><li><b>Support inquiries.</b> When you use the Support form we receive the name, email address and message you type, together with the date and time. Those details are emailed to our support inbox and are not stored on this website.</li><li><b>Temporary retry storage.</b> If an inquiry email cannot be sent, the message is kept in your own browser so it can be retried automatically, and it is deleted once it has been sent.</li><li><b>Bag contents.</b> Your bag is held only in the memory of the page you are viewing. It is never stored on your device and never sent to us, and it empties when the page is reloaded or closed.</li><li><b>Your cookie choice.</b> If you answer the cookie banner, that answer is stored in your own browser so we can remember whether you agreed to analytics, and it is not sent to us.</li></ul><p>We never receive your full payment card details, because payment is completed on Stripe’s own site, and we do not use advertising identifiers, tracking pixels or advertising networks.</p>'],
     ['How we use information', '<p>We use the information described above only to:</p><ul><li>reply to your inquiry and answer product or order questions;</li><li>fulfil and deliver orders you place through Stripe, and keep the sales records we are legally required to keep;</li><li>operate the storefront, keep it secure, and diagnose faults.</li></ul><p>We do not sell your information and we do not use it for marketing without your permission. Where we rely on your consent you may withdraw it at any time, and where we rely on our legitimate interest in running and protecting the storefront you may object to that processing, as explained under your rights below.</p>'],
     ['Cookies and your browser', '<p>The storefront itself sets no cookies, and uses no advertising or tracking pixels. The only thing it always writes to your browser is a temporary retry record for an inquiry email that could not be sent: it holds the message you typed and is removed as soon as that message goes out.</p><p>Google Analytics is the one exception, and it is entirely optional. It is not loaded until you accept the cookie banner, so if you decline — or never answer — the storefront sets no cookies at all. See the <a href="#legal/cookie-policy">Cookie Policy</a> for the detail, including how to withdraw your choice later.</p>'],
-    ['Analytics, and how to refuse it', '<p>This storefront uses <b>Google Analytics</b> to see how many people visit, which pages they look at and how long they stay, so that we can see what is worth improving. Google sets two cookies on this site (<code>_ga</code> and <code>_ga_…</code>), and receives your IP address, browser details, the page you viewed and when.</p><p><b>None of that happens unless you accept the cookie banner.</b> The analytics code is not loaded at all until you agree, and it is not loaded if you refuse. You can change your mind at any time from the <a href="#legal/cookie-policy">Cookie Policy</a>, and clearing your browser’s site data has the same effect. We only use the aggregated reports Google shows us; we do not use it to identify who you are, to build profiles about you, or to make automated decisions about you.</p>'],
+    ['Analytics, and how to refuse it', '<p>This storefront uses <b>Google Analytics</b> to see how many people visit, which pages they look at, how long they stay and which actions they take — adding a bike to the bag, starting checkout or sending a support inquiry — so that we can see what is worth improving. Google sets two cookies on this site (<code>_ga</code> and <code>_ga_…</code>), and receives your IP address, browser details, the pages you viewed, the actions you took and when.</p><p><b>None of that happens unless you accept the cookie banner.</b> The analytics code is not loaded at all until you agree, and it is not loaded if you refuse. You can change your mind at any time from the <a href="#legal/cookie-policy">Cookie Policy</a>, and clearing your browser’s site data has the same effect. We only use the aggregated reports Google shows us; we do not use it to identify who you are, to build profiles about you, or to make automated decisions about you.</p>'],
     ['Payments and service providers', '<p>Checkout is handled entirely by Stripe. When you click a Buy now or checkout button you leave this storefront and pay on Stripe’s own secure page, which collects your card details, email address and delivery information under <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe’s own privacy policy</a>. We never see or store your card number. Stripe then tells us what was ordered and where to send it, so that we can deliver the order and keep the records we are required to keep.</p><p>The other providers involved are <b>Google Analytics</b> (United States), which measures use of the storefront and only if you accept the cookie banner; <b>EmailJS</b> (United States), which delivers the support-inquiry email and therefore receives your IP address, name, email address and message at the moment you submit the form; and <b>GitHub Pages</b> (United States), which hosts the site and records standard request logs including IP addresses in order to serve and protect it. Payments are processed by <b>Stripe Payments Europe, Ltd</b> (Ireland). Where these providers handle information in the United States they do so under the transfer safeguards they offer, such as standard contractual clauses.</p>'],
     ['Your rights', '<p>Because we hold very little about you, most requests are quick to answer. You have the right to ask for a copy of the information we hold about you, to have it corrected or deleted, to restrict or object to how we use it, and to receive it in a portable format. Where we rely on consent you can withdraw it at any time, without affecting anything done before you withdrew it.</p><p>Email <a href="mailto:etorqued@gmail.com">etorqued@gmail.com</a> and we will respond within one month, although we may need to confirm your identity first. If you are not satisfied with our response you can complain to the Irish Data Protection Commission (<a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer">dataprotection.ie</a>) or to the supervisory authority in your own country.</p>'],
     ['Retention and security', '<p>Support inquiries are kept in our support inbox for up to 24 months so that we can deal with follow-up questions, and are then deleted. Order and accounting records supplied by Stripe are kept for six years, which is what Irish tax law requires. The retry record in your browser disappears as soon as the message is sent, and the contents of your bag are never stored at all.</p><p>Google keeps the usage data behind our analytics reports for <b>14 months</b> and then deletes it; we cannot retrieve anything beyond that window. Your cookie choice stays on your own device until you clear it.</p><p>This site is served over an encrypted HTTPS connection. Card details are entered only on Stripe’s servers and never reach this website, so no card data is held here. If we ever became aware of a breach affecting your information we would inform you and the Data Protection Commission, as the law requires.</p>'],
@@ -979,6 +1002,7 @@ function goToCheckout() {
   }
   const [single] = cart;
   if (single.product.paymentLink) {
+    trackAnalyticsEvent('begin_checkout', checkoutEventParams(single));
     window.open(single.product.paymentLink, '_blank', 'noopener,noreferrer');
     return;
   }
@@ -1045,6 +1069,7 @@ function addToCart(product, quantity, variant = selectedVariant, options = {}) {
   renderCart(options.sourceElement ? variantKey : undefined);
   flyToCart(product, options.sourceElement);
   showCartToast();
+  trackAnalyticsEvent('add_to_cart', checkoutEventParams({ product, quantity, variant, unitPrice }));
 }
 
 function openCart() {
@@ -1097,9 +1122,18 @@ function quickAddToBag(product, sourceElement) {
 
 productGrids.forEach((grid) => {
   grid.addEventListener('click', (event) => {
-    // Buy Now is a real link: let the browser open Stripe in a new tab and
-    // never also treat the tap as a request to open the product preview.
-    if (event.target.closest('.buy-now')) return;
+    // Buy Now is a real link: report the checkout, let the browser open Stripe
+    // in a new tab, and never also treat the tap as a request to open the
+    // product preview.
+    const buyNow = event.target.closest('.buy-now');
+    if (buyNow) {
+      const buyNowProduct = products.find((item) => item.id === buyNow.dataset.buyNow);
+      if (buyNowProduct) {
+        const unitPrice = getVariantPrice(buyNowProduct, selectedVariant);
+        trackAnalyticsEvent('begin_checkout', checkoutEventParams({ product: buyNowProduct, quantity: 1, variant: selectedVariant, unitPrice }));
+      }
+      return;
+    }
     const quickAdd = event.target.closest('.quick-add');
     if (quickAdd) {
       event.preventDefault();
@@ -1125,11 +1159,17 @@ document.querySelector('#navBagButton').addEventListener('click', openCart);
 document.querySelector('#closeCart').addEventListener('click', closeCart);
 document.querySelector('#proceedToCheckout').addEventListener('click', goToCheckout);
 cartItems.addEventListener('click', (event) => {
-  const actionButton = event.target.closest('[data-action]');
   const itemElement = event.target.closest('.cart-item');
-  if (!actionButton || !itemElement) return;
-  const item = cart[Number(itemElement.dataset.cartIndex)];
+  const item = itemElement ? cart[Number(itemElement.dataset.cartIndex)] : null;
   if (!item) return;
+  // Buy now inside the bag is the same act as Proceed to Checkout: report it,
+  // then let the link open Stripe as it normally would.
+  if (event.target.closest('.cart-buy-now')) {
+    trackAnalyticsEvent('begin_checkout', checkoutEventParams(item));
+    return;
+  }
+  const actionButton = event.target.closest('[data-action]');
+  if (!actionButton) return;
   if (actionButton.dataset.action === 'increase') item.quantity = Math.min(99, item.quantity + 1);
   if (actionButton.dataset.action === 'decrease') item.quantity -= 1;
   if (actionButton.dataset.action === 'remove' || item.quantity <= 0) cart.splice(Number(itemElement.dataset.cartIndex), 1);
@@ -1273,10 +1313,12 @@ document.querySelector('#supportInquiryForm').addEventListener('submit', async (
   form.dataset.sending = 'false';
   submitButton.disabled = false;
   if (inquiryResult.ok) {
+    trackAnalyticsEvent('generate_lead', { form: 'support_inquiry' });
     submitButton.innerHTML = 'Inquiry Sent <span>✓</span>';
     form.reset();
     setFormStatus(inquiryStatus, `Thanks — your message is on its way. We’ll reply to ${fields.supportEmail}.`);
   } else if (inquiryResult.queued) {
+    trackAnalyticsEvent('support_inquiry_queued', { form: 'support_inquiry' });
     submitButton.innerHTML = originalLabel;
     setFormStatus(inquiryStatus, `We couldn’t reach the mail service just now — your message is saved and we’ll keep retrying automatically. If it’s urgent, email ${SUPPORT_EMAIL} directly.`, 'warning');
   } else {
@@ -1298,6 +1340,25 @@ const cookieDeclineButton = document.querySelector('#cookieDecline');
 
 function hideCookieBanner() {
   if (cookieBanner) cookieBanner.hidden = true;
+  syncCookieBannerOffset();
+}
+
+/* The banner is fixed to the bottom of the viewport, so anything else anchored
+   there sits underneath it — the open bag hid its payment badges behind it. Its
+   measured height is published as a custom property that the stylesheet offsets
+   those elements by, and it is 0 when no banner is up, so every offset
+   collapses on its own. */
+function syncCookieBannerOffset() {
+  const height = cookieBanner && !cookieBanner.hidden ? Math.round(cookieBanner.getBoundingClientRect().height) : 0;
+  document.documentElement.style.setProperty('--cookie-banner-h', `${height}px`);
+}
+
+window.addEventListener('resize', syncCookieBannerOffset);
+// The banner's height also changes without a window resize — when the copy
+// rewraps, or when a web font swaps in after load — so it is watched directly
+// rather than measured once. Hiding it collapses the same property to 0.
+if (cookieBanner && typeof ResizeObserver === 'function') {
+  new ResizeObserver(syncCookieBannerOffset).observe(cookieBanner);
 }
 
 if (cookieBanner) {
@@ -1317,6 +1378,7 @@ if (cookieBanner) {
       hideCookieBanner();
     } else {
       cookieBanner.hidden = false;
+      syncCookieBannerOffset();
     }
   }
 
