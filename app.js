@@ -1309,8 +1309,13 @@ if (cookieBanner) {
 }
 
 /* “Change your mind” on the Cookie Policy: forget the choice and reload so the
-   analytics cookies go with it. */
-document.querySelector('#resetAnalyticsConsent')?.addEventListener('click', (event) => {
+   analytics cookies go with it. The link lives in legal-page content that is
+   rendered lazily into #legalPageBody, so it does not exist when this script
+   runs and a direct query only finds it on a page loaded straight at that URL.
+   The handler is therefore delegated to the document. */
+document.addEventListener('click', (event) => {
+  const resetLink = event.target instanceof Element ? event.target.closest('#resetAnalyticsConsent') : null;
+  if (!resetLink) return;
   event.preventDefault();
   clearAnalyticsConsent();
   window.location.reload();
