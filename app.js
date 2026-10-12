@@ -73,15 +73,30 @@ function clearAnalyticsConsent() {
   expireAnalyticsCookies();
 }
 
-/* Google Analytics sets its cookies on this site's own domain with path /, so
-   they are expired here rather than left behind: same name, same path, same
-   domain, an expiry in the past. Anything else matching _ga_ is swept up too,
-   since a measurement ID change would otherwise orphan a cookie. */
+/* Google Analytics sets its cookies with an explicit domain attribute, so a
+   write that omits the domain targets a different cookie and leaves the real
+   one in place: the deletion looks like it worked while the cookie survives.
+   Each name is therefore expired once per domain that could have been used —
+   host-only, the current host and each of its parents — and an expiry aimed at
+   a cookie that does not exist is simply ignored, so the extra writes cost
+   nothing. Names matching _ga_ are swept up too, so changing the measurement
+   ID never orphans a cookie. */
 function expireAnalyticsCookies() {
+  const expired = 'expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   const names = document.cookie.split(';').map((cookie) => cookie.split('=')[0].trim())
     .filter((name) => name === '_ga' || name.startsWith('_ga_'));
+
+  const labels = location.hostname.split('.');
+  const domains = [null]; // Host-only, which is what a plain write would set.
+  for (let i = 0; i <= labels.length - 2; i += 1) {
+    const domain = labels.slice(i).join('.');
+    domains.push(domain, `.${domain}`);
+  }
+
   for (const name of names) {
-    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+    for (const domain of domains) {
+      document.cookie = domain === null ? `${name}=; ${expired}` : `${name}=; ${expired}; domain=${domain}`;
+    }
   }
 }
 
@@ -1290,10 +1305,19 @@ if (cookieBanner) {
   if (storedConsent === 'accepted') {
     hideCookieBanner();
     startAnalytics();
-  } else if (storedConsent === 'declined') {
-    hideCookieBanner();
   } else {
-    cookieBanner.hidden = false;
+    // Without consent nothing from Google may be loaded or left behind, so any
+    // cookie an earlier acceptance set is cleared on this load as well as at the
+    // moment of withdrawal. Clearing it here is what makes the withdrawal stick:
+    // when the reset link is clicked Analytics is still running and can write a
+    // fresh cookie immediately after that deletion, and this load is the first
+    // point at which nothing can recreate it.
+    expireAnalyticsCookies();
+    if (storedConsent === 'declined') {
+      hideCookieBanner();
+    } else {
+      cookieBanner.hidden = false;
+    }
   }
 
   cookieAcceptButton?.addEventListener('click', () => {
