@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — ETORQUED</title>
+  <meta name="robots" content="noindex, nofollow">
+  <!-- TEST MODE. Loads Stripe Elements from Stripe's CDN -->
+  <link rel="preconnect" href="https://js.stripe.com">
+  <style>
+    :root {
+      --bg: #0a0b0d;
+      --panel: #121418;
+      --line: #24282f;
+      --text: #f2f3f4;
+      --muted: #9aa0a8;
+      --green: #29e06a;
+      --green-hover: #24c45c;
+      --green-text: #062812;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased; min-height: 100vh;
+    }
+    header.site {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 24px; border-bottom: 1px solid var(--line);
+    }
+    .logo { font-weight: 800; letter-spacing: .12em; font-size: 15px; }
+    .mode-tag {
+      font-size: 11px; color: var(--muted); border: 1px solid var(--line);
+      padding: 4px 10px; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px; }
+    .cols {
+      display: grid; grid-template-columns: minmax(0,1fr) 400px;
+      gap: 44px; align-items: start; margin-top: 26px;
+    }
+    .pay h1 { font-size: 22px; margin-bottom: 4px; }
+    .pay .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+    .pay-label { text-transform: uppercase; font-size: 11px; letter-spacing: .12em; color: var(--muted); margin-bottom: 8px; }
+    #wallet-buttons { min-height: 44px; margin-bottom: 14px; }
+    .or-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .1em; margin: 18px 0; }
+    .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+    .note { color: var(--muted); font-size: 12px; margin-top: 14px; }
+    .summary {
+      background: var(--panel); border: 1px solid var(--line);
+      padding: 22px; position: sticky; top: 24px;
+    }
+    .summary h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 16px; }
+    .line { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+    .line .name small { display: block; color: var(--muted); font-size: 12px; }
+    .sep { height: 1px; background: var(--line); margin: 14px 0; }
+    .line.total { font-weight: 700; font-size: 16px; margin-bottom: 0; }
+    .pay-btn {
+      width: 100%; background: var(--green); color: var(--green-text);
+      border: 0; border-radius: 8px; font-weight: 700; font-size: 15px;
+      padding: 14px; margin-top: 16px; cursor: pointer; transition: background .15s ease;
+    }
+    .pay-btn:hover { background: var(--green-hover); }
+    .pay-btn[disabled] { opacity: .5; cursor: not-allowed; }
+    @media (max-width: 900px) {
+      .cols { grid-template-columns: 1fr; }
+      .summary { position: static; order: 2; }
+    }
+    .StripeElement { background: #171a1f; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    .error { color: #ff5f57; font-size: 13px; margin-top: 10px; min-height: 18px; }
+    .ok { color: var(--green); font-size: 14px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="logo">ETORQUED</div>
+    <div class="mode-tag">Test mode</div>
+  </header>
+
+  <div class="wrap">
+    <div class="cols">
+      <!-- LEFT: payment -->
+      <div class="pay">
+        <h1>Checkout</h1>
+        <p class="sub">No real money is involved — this is a test-mode preview of the ETQ Apex E-Bike.</p>
+
+        <p class="pay-label">Fast pay</p>
+        <div id="wallet-buttons"></div>
+
+        <div class="or-divider">or pay with card</div>
+
+        <form id="payment-form">
+          <p class="pay-label">Card details</p>
+          <div id="payment-element"></div>
+          <div class="error" id="error-msg" role="alert"></div>
+          <button class="pay-btn" type="submit" id="submit">
+            <span id="button-text">Pay €1,499.00</span>
+          </button>
+          <p class="note">Card details are entered on Stripe's servers and never reach this site.</p>
+          <div class="ok" id="success-msg" hidden>Payment authorised — thank you.</div>
+        </form>
+      </div>
+
+      <!-- RIGHT: sticky order summary -->
+      <aside class="summary" aria-label="Order summary">
+        <h2>Order summary</h2>
+        <div class="line">
+          <div class="name">ETQ Apex E-Bike <small>Off-road / private land use only</small></div>
+          <div>€1,499.00</div>
+        </div>
+        <div class="sep"></div>
+        <div class="line"><span>Subtotal</span><span>€1,499.00</span></div>
+        <div class="line"><span>Shipping</span><span style="color:var(--green)">Free</span></div>
+        <div class="sep"></div>
+        <div class="line total"><span>Total</span><span>€1,499.00</span></div>
+        <p class="note">This button submits the same form as the green button on the left.</p>
+        <button class="pay-btn" type="button" id="summary-submit">Pay €1,499.00</button>
+      </aside>
+    </div>
+  </div>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    // Publishable key is injected by the server from .env.local at request time.
+    const STRIPE_PUBLISHABLE_KEY = '__STRIPE_PUBLISHABLE_KEY__';
+    const AMOUNT = 149900; // must match server.js PRODUCTS['etq-bike'].amount
+
+    (async () => {
+      const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+
+      const res = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: 'etq-bike', quantity: 1 }),
+      });
+      const data = await res.json();
+      if (data.error) return showError(data.error.message);
+      const { clientSecret } = data;
+
+      const els = stripe.elements({
+        clientSecret,
+        appearance: {
+          theme: 'night', labels: 'floating',
+          variables: {
+            colorPrimary: '#29e06a', colorBackground: '#171a1f', colorText: '#f2f3f4',
+            colorDanger: '#ff5f57', fontFamily: 'system-ui, sans-serif',
+            spacingUnit: '3px', borderRadius: '8px',
+          },
+        },
+      });
+
+      // 1) Apple Pay / Google Pay express buttons at the top
+      const pr = stripe.paymentRequest({
+        country: 'IE', currency: 'eur', total: { label: 'ETQ Apex E-Bike', amount: AMOUNT },
+        requestPayerName: true, requestPayerEmail: true,
+      });
+      const prButton = els.create('paymentRequestButton', { paymentRequest: pr, style: { paymentRequestButton: { type: 'buy', theme: 'light-outline', height: '48px' } } });
+      const canPay = await pr.canMakePayment();
+      const walletBox = document.getElementById('wallet-buttons');
+      if (canPay) {
+        prButton.mount('#wallet-buttons');
+        if (canPay.applePay) walletBox.insertAdjacentHTML('beforeend', '<p class="note" style="margin-top:6px">Apple Pay available on this device.</p>');
+        if (canPay.googlePay) walletBox.insertAdjacentHTML('beforeend', '<p class="note" style="margin-top:6px">Google Pay available on this device.</p>');
+      } else {
+        walletBox.innerHTML = '<p class="note">Apple Pay / Google Pay appear here on supported devices (Safari / Chrome with a wallet). Most desktop test browsers show nothing yet.</p>';
+      }
+      pr.on('paymentmethod', async ev => {
+        const { error } = await stripe.confirmPayment({ clientSecret, payment_method: ev.paymentMethod.id, confirmParams: { return_url: location.origin + '/checkout' }, redirect: 'if_required' });
+        if (error) { ev.complete('fail'); showError(error.message); } else { ev.complete('success'); showSuccess(); }
+      });
+
+      // 2) Card form — Payment Element (clientSecret is on the Elements group)
+      const pe = els.create('payment');
+      pe.mount('#payment-element');
+      pe.on('change', e => { document.getElementById('submit').disabled = !e.complete; });
+
+      formSubmit(async () => {
+        await stripe.confirmPayment({ elements: els, confirmParams: { return_url: location.origin + '/checkout' } });
+      });
+
+      function formSubmit(fn) {
+        document.getElementById('payment-form').addEventListener('submit', async e => {
+          e.preventDefault();
+          setBusy(true);
+          const { error } = await fn();
+          if (error) showError(error.message);
+          setBusy(false);
+        });
+        document.getElementById('summary-submit').addEventListener('click', () => {
+          document.getElementById('submit').click(); // same form, same flow
+        });
+      }
+
+      function setBusy(b) {
+        const btn = document.getElementById('submit');
+        btn.disabled = b;
+        document.getElementById('button-text').textContent = b ? 'Processing…' : 'Pay €1,499.00';
+      }
+      function showError(msg) { document.getElementById('error-msg').textContent = msg || ''; }
+      function showSuccess() {
+        document.getElementById('success-msg').hidden = false;
+        document.getElementById('submit').disabled = true;
+        document.getElementById('button-text').textContent = 'Authorised ✓';
+      }
+    })();
+  </script>
+</body>
+</html>

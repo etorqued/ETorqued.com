@@ -1,0 +1,17 @@
+{
+  "name": "etorqued-checkout",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ETORQUED test-mode Stripe checkout: PaymentIntent API + checkout page",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "stripe": "^16.8.0"
+  }
+}
