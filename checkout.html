@@ -72,7 +72,7 @@
 <body>
   <header class="site">
     <div class="logo">ETORQUED</div>
-    <div class="mode-tag">Test mode</div>
+    <div class="mode-tag" id="mode-tag">__STRIPE_MODE__ mode</div>
   </header>
 
   <div class="wrap">
@@ -80,7 +80,7 @@
       <!-- LEFT: payment -->
       <div class="pay">
         <h1>Checkout</h1>
-        <p class="sub">No real money is involved — this is a test-mode preview of the ETQ Apex E-Bike.</p>
+        <p class="sub" id="sub-copy"></p>
 
         <p class="pay-label">Fast pay</p>
         <div id="wallet-buttons"></div>
@@ -94,7 +94,7 @@
           <button class="pay-btn" type="submit" id="submit">
             <span id="button-text">Pay €1,499.00</span>
           </button>
-          <p class="note">Card details are entered on Stripe's servers and never reach this site.</p>
+          <p class="note">Payments are processed by Stripe. Card details are entered on Stripe's servers and never reach this site.</p>
           <div class="ok" id="success-msg" hidden>Payment authorised — thank you.</div>
         </form>
       </div>
@@ -119,9 +119,16 @@
 
   <script src="https://js.stripe.com/v3/"></script>
   <script>
-    // Publishable key is injected by the server from .env.local at request time.
+    // Publishable key and mode are injected by the server from .env.local at request time.
     const STRIPE_PUBLISHABLE_KEY = '__STRIPE_PUBLISHABLE_KEY__';
+    const MODE = '__STRIPE_MODE__';
     const AMOUNT = 149900; // must match server.js PRODUCTS['etq-bike'].amount
+
+    // Mode-honest copy. In live mode nothing on this page suggests a test.
+    document.getElementById('sub-copy').textContent = MODE === 'live'
+      ? 'You are paying for the ETQ Apex E-Bike. Card details are verified by Stripe before your order is confirmed.'
+      : 'No real money is involved — this is a test-mode preview of the ETQ Apex E-Bike.';
+    document.title = MODE === 'live' ? 'Checkout — ETORQUED' : 'Checkout (test) — ETORQUED';
 
     (async () => {
       const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
@@ -178,7 +185,7 @@
         if (canPay.applePay) walletBox.insertAdjacentHTML('beforeend', '<p class="note" style="margin-top:6px">Apple Pay available on this device.</p>');
         if (canPay.googlePay) walletBox.insertAdjacentHTML('beforeend', '<p class="note" style="margin-top:6px">Google Pay available on this device.</p>');
       } else {
-        walletBox.innerHTML = '<p class="note">Apple Pay / Google Pay appear here on supported devices (Safari / Chrome with a wallet). Most desktop test browsers show nothing yet.</p>';
+        walletBox.innerHTML = '<p class="note">Apple Pay / Google Pay appear here on supported devices (Safari / Chrome with a wallet).</p>';
       }
       pr.on('paymentmethod', async ev => {
         const { error } = await stripe.confirmPayment({ clientSecret, payment_method: ev.paymentMethod.id, confirmParams: { return_url: location.origin + '/checkout' }, redirect: 'if_required' });
