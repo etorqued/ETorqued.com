@@ -9,14 +9,14 @@
   <link rel="preconnect" href="https://js.stripe.com">
   <style>
     :root {
-      --bg: #0a0b0d;
-      --panel: #121418;
-      --line: #24282f;
-      --text: #f2f3f4;
-      --muted: #9aa0a8;
-      --green: #29e06a;
-      --green-hover: #24c45c;
-      --green-text: #062812;
+      --bg: #000000;
+      --panel: #000000;
+      --line: #ffffff;
+      --text: #ffffff;
+      --muted: #a3a3a3;
+      --btn: #ffffff;
+      --btn-hover: #d9d9d9;
+      --btn-text: #000000;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -54,19 +54,19 @@
     .sep { height: 1px; background: var(--line); margin: 14px 0; }
     .line.total { font-weight: 700; font-size: 16px; margin-bottom: 0; }
     .pay-btn {
-      width: 100%; background: var(--green); color: var(--green-text);
+      width: 100%; background: var(--btn); color: var(--btn-text);
       border: 0; border-radius: 8px; font-weight: 700; font-size: 15px;
       padding: 14px; margin-top: 16px; cursor: pointer; transition: background .15s ease;
     }
-    .pay-btn:hover { background: var(--green-hover); }
+    .pay-btn:hover { background: var(--btn-hover); }
     .pay-btn[disabled] { opacity: .5; cursor: not-allowed; }
     @media (max-width: 900px) {
       .cols { grid-template-columns: 1fr; }
       .summary { position: static; order: 2; }
     }
-    .StripeElement { background: #171a1f; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    .StripeElement { background: #000000; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
     .error { color: #ff5f57; font-size: 13px; margin-top: 10px; min-height: 18px; }
-    .ok { color: var(--green); font-size: 14px; margin-top: 12px; }
+    .ok { color: var(--text); font-size: 14px; margin-top: 12px; }
   </style>
 </head>
 <body>
@@ -108,10 +108,10 @@
         </div>
         <div class="sep"></div>
         <div class="line"><span>Subtotal</span><span>€1,499.00</span></div>
-        <div class="line"><span>Shipping</span><span style="color:var(--green)">Free</span></div>
+        <div class="line"><span>Shipping</span><span style="color:var(--text)">Free</span></div>
         <div class="sep"></div>
         <div class="line total"><span>Total</span><span>€1,499.00</span></div>
-        <p class="note">This button submits the same form as the green button on the left.</p>
+        <p class="note">This button submits the same form as the white button on the left.</p>
         <button class="pay-btn" type="button" id="summary-submit">Pay €1,499.00</button>
       </aside>
     </div>
@@ -126,6 +126,23 @@
     (async () => {
       const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
 
+      // Handle Stripe's redirect back after payment (return_url):
+      // ?redirect_status=succeeded|failed|processing
+      const redirectStatus = new URLSearchParams(location.search).get('redirect_status');
+      if (redirectStatus === 'succeeded') {
+        document.querySelector('.pay .sub').textContent = 'Payment authorised — thank you.';
+        document.getElementById('success-msg').hidden = false;
+        document.getElementById('submit').disabled = true;
+        document.getElementById('button-text').textContent = 'Authorised ✓';
+        window.history.replaceState({}, '', '/checkout'); // clean the URL
+        return; // no new intent needed
+      } else if (redirectStatus === 'failed' || redirectStatus === 'processing') {
+        showError(redirectStatus === 'failed'
+          ? 'Payment failed — check the card details and try again.'
+          : 'Payment is still processing.');
+        window.history.replaceState({}, '', '/checkout');
+      }
+
       const res = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -138,9 +155,10 @@
       const els = stripe.elements({
         clientSecret,
         appearance: {
-          theme: 'night', labels: 'floating',
+          theme: 'flat', labels: 'floating',
           variables: {
-            colorPrimary: '#29e06a', colorBackground: '#171a1f', colorText: '#f2f3f4',
+            colorPrimary: '#ffffff', colorBackground: '#000000', colorText: '#ffffff',
+            colorTextSecondary: '#a3a3a3', colorTextPlaceholder: '#737373',
             colorDanger: '#ff5f57', fontFamily: 'system-ui, sans-serif',
             spacingUnit: '3px', borderRadius: '8px',
           },
