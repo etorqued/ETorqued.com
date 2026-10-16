@@ -9,14 +9,14 @@
   <link rel="preconnect" href="https://js.stripe.com">
   <style>
     :root {
-      --bg: #000000;
-      --panel: #000000;
-      --line: #ffffff;
-      --text: #ffffff;
-      --muted: #a3a3a3;
-      --btn: #ffffff;
-      --btn-hover: #d9d9d9;
-      --btn-text: #000000;
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --line: #d9d9d9;
+      --text: #000000;
+      --muted: #595959;
+      --btn: #000000;
+      --btn-hover: #333333;
+      --btn-text: #ffffff;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -64,8 +64,8 @@
       .cols { grid-template-columns: 1fr; }
       .summary { position: static; order: 2; }
     }
-    .StripeElement { background: #000000; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
-    .error { color: #ff5f57; font-size: 13px; margin-top: 10px; min-height: 18px; }
+    .StripeElement { background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    .error { color: #c62828; font-size: 13px; margin-top: 10px; min-height: 18px; }
     .ok { color: var(--text); font-size: 14px; margin-top: 12px; }
   </style>
 </head>
@@ -111,7 +111,7 @@
         <div class="line"><span>Shipping</span><span style="color:var(--text)">Free</span></div>
         <div class="sep"></div>
         <div class="line total"><span>Total</span><span>€1,499.00</span></div>
-        <p class="note">This button submits the same form as the white button on the left.</p>
+        <p class="note">This button submits the same form as the black button on the left.</p>
         <button class="pay-btn" type="button" id="summary-submit">Pay €1,499.00</button>
       </aside>
     </div>
@@ -155,11 +155,11 @@
       const els = stripe.elements({
         clientSecret,
         appearance: {
-          theme: 'flat', labels: 'floating',
+          theme: 'stripe', labels: 'floating',
           variables: {
-            colorPrimary: '#ffffff', colorBackground: '#000000', colorText: '#ffffff',
-            colorTextSecondary: '#a3a3a3', colorTextPlaceholder: '#737373',
-            colorDanger: '#ff5f57', fontFamily: 'system-ui, sans-serif',
+            colorPrimary: '#000000', colorBackground: '#ffffff', colorText: '#000000',
+            colorTextSecondary: '#595959', colorTextPlaceholder: '#8c8c8c',
+            colorDanger: '#c62828', fontFamily: 'system-ui, sans-serif',
             spacingUnit: '3px', borderRadius: '8px',
           },
         },
