@@ -84,31 +84,95 @@ app.get('/checkout', (req, res) => {
   res.type('html').send(checkoutHtml());
 });
 
+// Read-only catalogue for rendering the cart. Amounts here are for display;
+// the charge is always recomputed server-side at intent creation.
+app.get('/api/products', (req, res) => {
+  const out = {};
+  for (const [id, p] of Object.entries(PRODUCTS)) {
+    if (id === 'etq-bike') continue; // legacy alias, not a real product
+    out[id] = { name: p.name, amount: p.amount, currency: p.currency };
+  }
+  res.json(out);
+});
+
+// --- Product catalogue (server-authoritative prices) --------------------------
+// Prices are in euro cents, matching the live store. The client never sends an
+// amount — it sends only product IDs and quantities.
 const PRODUCTS = {
-  'etq-bike': { amount: 149900, currency: 'eur', name: 'ETQ Apex E-Bike' },
+  'apex-pro':              { amount:  89999, currency: 'eur', name: 'ETQ APEX' },
+  'vortex-stealth':        { amount: 149999, currency: 'eur', name: 'ETQ VORTEX' },
+  'apex-vented-front-plate':   { amount: 2299, currency: 'eur', name: '"Apex" Vented Plate' },
+  'vortex-vented-front-plate': { amount: 2299, currency: 'eur', name: '"Vortex" Vented Plate' },
 };
+// legacy id kept so an older client still gets the right product:
+PRODUCTS['etq-bike'] = PRODUCTS['vortex-stealth'];
 const allowed = new Set(['eur']);
+const MAX_ITEMS = 50;      // total units per order
+const MAX_QTY = 10;        // per line
 
 app.post('/api/create-payment-intent', async (req, res) => {
   try {
-    const { productId, quantity = 1 } = req.body ?? {};
+    const body = req.body ?? {};
+    let items;
+
+    // New cart shape: { items: [{ productId, quantity }, ...] }
+    if (Array.isArray(body.items) && body.items.length) {
+      // Clamp to MAX_ITEMS lines, de-duplicate by productId, clamp quantities.
+      const byId = new Map();
+      for (const it of body.items.slice(0, MAX_ITEMS)) {
+        const id = String(it?.productId ?? '');
+        const product = PRODUCTS[id];
+        if (!product) {
+          return res.status(400).json({ error: { message: `Unknown productId: ${id}` } });
+        }
+        if (!allowed.has(product.currency)) {
+          return res.status(400).json({ error: { message: 'Unsupported currency' } });
+        }
+        const qty = Math.min(Math.max(parseInt(it?.quantity, 10) || 1, 1), MAX_QTY);
+        byId.set(id, (byId.get(id) || 0) + qty);
+      }
+      let totalUnits = 0;
+      let amount = 0;
+      const lines = [];
+      for (const [id, qty] of byId) {
+        totalUnits += qty;
+        amount += PRODUCTS[id].amount * qty;
+        lines.push(`${id}x${qty}`);
+      }
+      if (totalUnits > MAX_ITEMS) {
+        return res.status(400).json({ error: { message: `Order too large (max ${MAX_ITEMS} units)` } });
+      }
+      if (!amount) {
+        return res.status(400).json({ error: { message: 'Cart total is zero' } });
+      }
+      // Amount is computed server-side from the product table — the client never
+      // sends an amount, so a tampered request cannot change the price.
+      const intent = await stripe.paymentIntents.create({
+        amount,
+        currency: 'eur',
+        automatic_payment_methods: { enabled: true },
+        metadata: { items: lines.slice(0, 40).join(','), mode: MODE },
+      });
+      return res.json({ clientSecret: intent.client_secret, amount, lines });
+    }
+
+    // Legacy single-product shape: { productId, quantity }
+    const { productId, quantity = 1 } = body;
     const product = PRODUCTS[productId];
     if (!product) {
       return res.status(400).json({ error: { message: 'Unknown productId' } });
     }
-    const qty = Math.min(Math.max(parseInt(quantity, 10) || 1, 1), 10);
+    const qty = Math.min(Math.max(parseInt(quantity, 10) || 1, 1), MAX_QTY);
     if (!allowed.has(product.currency)) {
       return res.status(400).json({ error: { message: 'Unsupported currency' } });
     }
-    // Amount is computed server-side from the product table — the client never
-    // sends an amount, so a tampered request cannot change the price.
     const intent = await stripe.paymentIntents.create({
       amount: product.amount * qty,
       currency: product.currency,
       automatic_payment_methods: { enabled: true },
       metadata: { productId, quantity: String(qty), mode: MODE },
     });
-    res.json({ clientSecret: intent.client_secret });
+    res.json({ clientSecret: intent.client_secret, amount: product.amount * qty, lines: [`${productId}x${qty}`] });
   } catch (err) {
     console.error('create-payment-intent failed:', err?.message);
     res.status(500).json({ error: { message: 'Failed to create PaymentIntent' } });

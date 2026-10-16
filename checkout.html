@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout — ETORQUED</title>
   <meta name="robots" content="noindex, nofollow">
-  <!-- TEST MODE. Loads Stripe Elements from Stripe's CDN -->
+  <!-- Loads Stripe Elements from Stripe's CDN. Page behaviour adapts to the
+       server-injected mode (test/live) - see MODE below. -->
   <link rel="preconnect" href="https://js.stripe.com">
   <style>
     :root {
@@ -65,6 +66,14 @@
       .summary { position: static; order: 2; }
     }
     .StripeElement { background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    .qty { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+    .qty-btn, .qty-rm {
+      background: #ffffff; border: 1px solid var(--line); border-radius: 6px;
+      color: var(--text); font-size: 12px; cursor: pointer; padding: 2px 8px;
+    }
+    .qty-btn:hover, .qty-rm:hover { background: #f2f2f2; }
+    .qty-n { min-width: 14px; text-align: center; font-size: 12px; color: var(--text); }
+    .qty-rm { color: var(--muted); margin-left: 4px; }
     .error { color: #c62828; font-size: 13px; margin-top: 10px; min-height: 18px; }
     .ok { color: var(--text); font-size: 14px; margin-top: 12px; }
   </style>
@@ -92,7 +101,7 @@
           <div id="payment-element"></div>
           <div class="error" id="error-msg" role="alert"></div>
           <button class="pay-btn" type="submit" id="submit">
-            <span id="button-text">Pay €1,499.00</span>
+            <span id="button-text">Pay</span>
           </button>
           <p class="note">Payments are processed by Stripe. Card details are entered on Stripe's servers and never reach this site.</p>
           <div class="ok" id="success-msg" hidden>Payment authorised — thank you.</div>
@@ -102,17 +111,14 @@
       <!-- RIGHT: sticky order summary -->
       <aside class="summary" aria-label="Order summary">
         <h2>Order summary</h2>
-        <div class="line">
-          <div class="name">ETQ Apex E-Bike <small>Off-road / private land use only</small></div>
-          <div>€1,499.00</div>
-        </div>
+        <div id="cart-lines"></div>
         <div class="sep"></div>
-        <div class="line"><span>Subtotal</span><span>€1,499.00</span></div>
+        <div class="line"><span>Subtotal</span><span id="subtotal">—</span></div>
         <div class="line"><span>Shipping</span><span style="color:var(--text)">Free</span></div>
         <div class="sep"></div>
-        <div class="line total"><span>Total</span><span>€1,499.00</span></div>
-        <p class="note">This button submits the same form as the black button on the left.</p>
-        <button class="pay-btn" type="button" id="summary-submit">Pay €1,499.00</button>
+        <div class="line total"><span>Total</span><span id="total">—</span></div>
+        <p class="note">Quantities update without reloading; prices come from the server.</p>
+        <button class="pay-btn" type="button" id="summary-submit">Pay</button>
       </aside>
     </div>
   </div>
@@ -122,65 +128,152 @@
     // Publishable key and mode are injected by the server from .env.local at request time.
     const STRIPE_PUBLISHABLE_KEY = '__STRIPE_PUBLISHABLE_KEY__';
     const MODE = '__STRIPE_MODE__';
-    const AMOUNT = 149900; // must match server.js PRODUCTS['etq-bike'].amount
 
-    // Mode-honest copy. In live mode nothing on this page suggests a test.
-    document.getElementById('sub-copy').textContent = MODE === 'live'
-      ? 'You are paying for the ETQ Apex E-Bike. Card details are verified by Stripe before your order is confirmed.'
-      : 'No real money is involved — this is a test-mode preview of the ETQ Apex E-Bike.';
-    document.title = MODE === 'live' ? 'Checkout — ETORQUED' : 'Checkout (test) — ETORQUED';
+    // ---- Cart state (client-side mirror; the server is the price authority) ----
+    const cart = new Map(); // productId -> qty
+    let CATALOGUE = null;   // fetched read-only from /api/products (prices live server-side)
+    let els = null;         // Stripe Elements group
+    let currentSecret = null;
 
-    (async () => {
-      const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+    const fmt = cents => (cents / 100).toLocaleString('en-IE', { style: 'currency', currency: 'EUR' });
 
-      // Handle Stripe's redirect back after payment (return_url):
-      // ?redirect_status=succeeded|failed|processing
-      const redirectStatus = new URLSearchParams(location.search).get('redirect_status');
-      if (redirectStatus === 'succeeded') {
-        document.querySelector('.pay .sub').textContent = 'Payment authorised — thank you.';
-        document.getElementById('success-msg').hidden = false;
-        document.getElementById('submit').disabled = true;
-        document.getElementById('button-text').textContent = 'Authorised ✓';
-        window.history.replaceState({}, '', '/checkout'); // clean the URL
-        return; // no new intent needed
-      } else if (redirectStatus === 'failed' || redirectStatus === 'processing') {
-        showError(redirectStatus === 'failed'
-          ? 'Payment failed — check the card details and try again.'
-          : 'Payment is still processing.');
-        window.history.replaceState({}, '', '/checkout');
+    function renderCart() {
+      const box = document.getElementById('cart-lines');
+      box.innerHTML = '';
+      let subtotal = 0;
+      for (const [id, qty] of cart) {
+        const p = CATALOGUE[id];
+        if (!p) continue;
+        subtotal += p.amount * qty;
+        const row = document.createElement('div');
+        row.className = 'line';
+        row.innerHTML = `
+          <div class="name">${p.name}
+            <div class="qty" data-id="${id}">
+              <button type="button" class="qty-btn" data-d="-1" aria-label="Decrease quantity of ${p.name.replace(/"/g, '')}">−</button>
+              <span class="qty-n">${qty}</span>
+              <button type="button" class="qty-btn" data-d="1" aria-label="Increase quantity of ${p.name.replace(/"/g, '')}">+</button>
+              <button type="button" class="qty-rm" data-id="${id}" aria-label="Remove">Remove</button>
+            </div>
+          </div>
+          <div>${fmt(p.amount * qty)}</div>`;
+        box.appendChild(row);
       }
+      document.getElementById('subtotal').textContent = fmt(subtotal);
+      document.getElementById('total').textContent = fmt(subtotal);
+      const label = fmt(subtotal);
+      document.getElementById('button-text').textContent = `Pay ${label}`;
+      document.getElementById('summary-submit').textContent = `Pay ${label}`;
+    }
 
+    // Quantity +/- and Remove (event delegation on the summary container)
+    document.getElementById('cart-lines').addEventListener('click', async e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const row = btn.closest('.qty');
+      if (btn.matches('.qty-btn') && row) {
+        const id = row.dataset.id;
+        const next = Math.max(1, Math.min(10, (cart.get(id) || 1) + parseInt(btn.dataset.d, 10)));
+        cart.set(id, next);
+        renderCart();
+        await refreshIntent();
+      } else if (btn.matches('.qty-rm')) {
+        cart.delete(btn.dataset.id);
+        if (!cart.size) addItem('apex-pro', 1); // never allow an empty cart
+        renderCart();
+        await refreshIntent();
+      }
+    });
+
+    // Read-only product list for rendering; real money is always computed on the server.
+    async function loadCatalogue() {
+      const res = await fetch('/api/products');
+      CATALOGUE = await res.json();
+    }
+
+    // Deep-link support: ?item=<productId>&qty=<n> adds lines (default APEX x1).
+    (function initCart() {
+      const add = (id, qty) => { if (id && /^[-a-z0-9_]+$/i.test(id)) cart.set(id, Math.max(1, Math.min(10, parseInt(qty, 10) || 1))); };
+      const params = new URLSearchParams(location.search);
+      if (params.get('item')) {
+        add(params.get('item'), params.get('qty') || 1);
+      } else {
+        add('apex-pro', 1);
+      }
+    })();
+
+    // (Re)create the PaymentIntent for the current cart and rebuild the form.
+    async function refreshIntent() {
       const res = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: 'etq-bike', quantity: 1 }),
+        body: JSON.stringify({ items: [...cart].map(([productId, quantity]) => ({ productId, quantity })) }),
       });
       const data = await res.json();
-      if (data.error) return showError(data.error.message);
-      const { clientSecret } = data;
+      if (data.error) { showError(data.error.message); return; }
+      const { clientSecret, amount: serverAmount } = data;
+      // Defence in depth: the rendered total must equal what the server computed.
+      // If a catalogue mismatch ever crept in, refuse rather than mis-charge.
+      const localTotal = [...cart].reduce((s, [id, q]) => s + (CATALOGUE[id]?.amount || 0) * q, 0);
+      if (serverAmount !== localTotal) {
+        showError('Prices were updated — please reload the page.');
+        return;
+      }
+      currentSecret = clientSecret;
+      await boot(); // re-mount Elements + wallet against the new intent
+    }
 
-      const els = stripe.elements({
-        clientSecret,
-        appearance: {
-          theme: 'stripe', labels: 'floating',
-          variables: {
-            colorPrimary: '#000000', colorBackground: '#ffffff', colorText: '#000000',
-            colorTextSecondary: '#595959', colorTextPlaceholder: '#8c8c8c',
-            colorDanger: '#c62828', fontFamily: 'system-ui, sans-serif',
-            spacingUnit: '3px', borderRadius: '8px',
-          },
-        },
-      });
+    // Mode-honest copy. In live mode nothing on this page suggests a test.
+    document.getElementById('sub-copy').textContent = MODE === 'live'
+      ? 'You are paying for the items in your order. Card details are verified by Stripe before your order is confirmed.'
+      : 'No real money is involved — this is a test-mode preview.';
+    document.title = MODE === 'live' ? 'Checkout — ETORQUED' : 'Checkout (test) — ETORQUED';
+
+    const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+
+    // Handle Stripe's redirect back after payment (return_url):
+    // ?redirect_status=succeeded|failed|processing
+    const redirectStatus = new URLSearchParams(location.search).get('redirect_status');
+    if (redirectStatus === 'succeeded') {
+      document.querySelector('.pay .sub').textContent = 'Payment authorised — thank you.';
+      document.getElementById('success-msg').hidden = false;
+      document.getElementById('submit').disabled = true;
+      document.getElementById('button-text').textContent = 'Authorised ✓';
+      window.history.replaceState({}, '', '/checkout'); // clean the URL
+    } else if (redirectStatus === 'failed' || redirectStatus === 'processing') {
+      showError(redirectStatus === 'failed'
+        ? 'Payment failed — check the card details and try again.'
+        : 'Payment is still processing.');
+      window.history.replaceState({}, '', '/checkout');
+    }
+
+    const APPEARANCE = {
+      theme: 'stripe', labels: 'floating',
+      variables: {
+        colorPrimary: '#000000', colorBackground: '#ffffff', colorText: '#000000',
+        colorTextSecondary: '#595959', colorTextPlaceholder: '#8c8c8c',
+        colorDanger: '#c62828', fontFamily: 'system-ui, sans-serif',
+        spacingUnit: '3px', borderRadius: '8px',
+      },
+    };
+
+    // (Re)initialise Elements + wallet buttons for the current intent.
+    async function boot() {
+      if (!currentSecret) return;
+      els = stripe.elements({ clientSecret: currentSecret, appearance: APPEARANCE });
 
       // 1) Apple Pay / Google Pay express buttons at the top
+      const cartLabel = 'ETORQUED order';
       const pr = stripe.paymentRequest({
-        country: 'IE', currency: 'eur', total: { label: 'ETQ Apex E-Bike', amount: AMOUNT },
+        country: 'IE', currency: 'eur',
+        total: { label: cartLabel, amount: [...cart].reduce((s, [id, q]) => s + (CATALOGUE[id]?.amount || 0) * q, 0) },
         requestPayerName: true, requestPayerEmail: true,
       });
-      const prButton = els.create('paymentRequestButton', { paymentRequest: pr, style: { paymentRequestButton: { type: 'buy', theme: 'light-outline', height: '48px' } } });
       const canPay = await pr.canMakePayment();
       const walletBox = document.getElementById('wallet-buttons');
+      walletBox.innerHTML = '';
       if (canPay) {
+        const prButton = els.create('paymentRequestButton', { paymentRequest: pr, style: { paymentRequestButton: { type: 'buy', theme: 'light-outline', height: '48px' } } });
         prButton.mount('#wallet-buttons');
         if (canPay.applePay) walletBox.insertAdjacentHTML('beforeend', '<p class="note" style="margin-top:6px">Apple Pay available on this device.</p>');
         if (canPay.googlePay) walletBox.insertAdjacentHTML('beforeend', '<p class="note" style="margin-top:6px">Google Pay available on this device.</p>');
@@ -188,43 +281,58 @@
         walletBox.innerHTML = '<p class="note">Apple Pay / Google Pay appear here on supported devices (Safari / Chrome with a wallet).</p>';
       }
       pr.on('paymentmethod', async ev => {
-        const { error } = await stripe.confirmPayment({ clientSecret, payment_method: ev.paymentMethod.id, confirmParams: { return_url: location.origin + '/checkout' }, redirect: 'if_required' });
+        const { error } = await stripe.confirmPayment({ clientSecret: currentSecret, payment_method: ev.paymentMethod.id, confirmParams: { return_url: location.origin + '/checkout' }, redirect: 'if_required' });
         if (error) { ev.complete('fail'); showError(error.message); } else { ev.complete('success'); showSuccess(); }
       });
 
       // 2) Card form — Payment Element (clientSecret is on the Elements group)
+      document.getElementById('payment-element').innerHTML = '';
       const pe = els.create('payment');
       pe.mount('#payment-element');
-      pe.on('change', e => { document.getElementById('submit').disabled = !e.complete; });
-
-      formSubmit(async () => {
-        await stripe.confirmPayment({ elements: els, confirmParams: { return_url: location.origin + '/checkout' } });
-      });
-
-      function formSubmit(fn) {
-        document.getElementById('payment-form').addEventListener('submit', async e => {
-          e.preventDefault();
-          setBusy(true);
-          const { error } = await fn();
-          if (error) showError(error.message);
-          setBusy(false);
-        });
-        document.getElementById('summary-submit').addEventListener('click', () => {
-          document.getElementById('submit').click(); // same form, same flow
-        });
-      }
-
-      function setBusy(b) {
+      pe.on('change', e => {
         const btn = document.getElementById('submit');
-        btn.disabled = b;
-        document.getElementById('button-text').textContent = b ? 'Processing…' : 'Pay €1,499.00';
-      }
-      function showError(msg) { document.getElementById('error-msg').textContent = msg || ''; }
-      function showSuccess() {
-        document.getElementById('success-msg').hidden = false;
+        btn.disabled = !e.complete;
+        if (e.complete) btn.disabled = btn.disabled || busy;
+      });
+    }
+
+    let busy = false;
+    document.getElementById('payment-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (busy || !els) return;
+      busy = true; setBusy(true);
+      const { error } = await stripe.confirmPayment({ elements: els, confirmParams: { return_url: location.origin + '/checkout' } });
+      if (error) showError(error.message);
+      busy = false; setBusy(false);
+    });
+    document.getElementById('summary-submit').addEventListener('click', () => {
+      document.getElementById('submit').click(); // same form, same flow
+    });
+
+    function setBusy(b) {
+      document.getElementById('submit').disabled = b || !els;
+      document.getElementById('button-text').textContent = b ? 'Processing…' : document.getElementById('total').textContent.replace(/^/, 'Pay ');
+    }
+    function showError(msg) { document.getElementById('error-msg').textContent = msg || ''; }
+    function showSuccess() {
+      document.getElementById('success-msg').hidden = false;
+      document.getElementById('submit').disabled = true;
+      document.getElementById('button-text').textContent = 'Authorised ✓';
+    }
+
+    // ---- Boot: catalogue, cart render, first intent ----
+    (async () => {
+      if (STRIPE_PUBLISHABLE_KEY.startsWith('__')) {
+        // Raw file opened without the backend (e.g. deployed as a static file).
+        // Fail loudly and visibly rather than showing a broken, fake checkout.
+        showError('Checkout unavailable — this page must be served by the ETORQUED checkout server.');
         document.getElementById('submit').disabled = true;
-        document.getElementById('button-text').textContent = 'Authorised ✓';
+        document.getElementById('summary-submit').disabled = true;
+        return;
       }
+      await loadCatalogue();
+      renderCart();
+      await refreshIntent();
     })();
   </script>
 </body>
