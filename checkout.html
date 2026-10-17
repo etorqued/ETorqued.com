@@ -29,10 +29,6 @@
       padding: 18px 24px; border-bottom: 1px solid var(--line);
     }
     .logo { font-weight: 800; letter-spacing: .12em; font-size: 15px; }
-    .mode-tag {
-      font-size: 11px; color: var(--muted); border: 1px solid var(--line);
-      padding: 4px 10px; letter-spacing: .08em; text-transform: uppercase;
-    }
     .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px; }
     .cols {
       display: grid; grid-template-columns: minmax(0,1fr) 400px;
@@ -85,7 +81,6 @@
 <body>
   <header class="site">
     <div class="logo">ETORQUED</div>
-    <div class="mode-tag" id="mode-tag">__STRIPE_MODE__ mode</div>
   </header>
 
   <div class="wrap">
@@ -325,8 +320,16 @@
       // confirmPayment({ elements }) — no extra wiring to leak it.
       const addrBox = document.getElementById('address-element');
       addrBox.innerHTML = '';
-      // Stripe's own Address Element, options exactly as Stripe specifies.
-      const addr = els.create('address', { mode: 'shipping' });
+      // Stripe's official Address Element: shipping mode with Google Maps
+      // one-click autocomplete (mode 'automatic' uses Stripe's own Google
+      // Maps key when paired with the Payment Element; full per-country
+      // structured forms incl. Eircode). 'google_maps_api' would need our
+      // own Google Places key instead.
+      const addr = els.create('address', {
+        mode: 'shipping',
+        autocomplete: { mode: 'automatic' },
+        fields: { phone: 'always' },
+      });
       addr.mount('#address-element');
       addr.on('change', e => { addressComplete = !!e.complete; });
 
