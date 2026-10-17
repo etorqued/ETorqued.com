@@ -336,13 +336,17 @@
     }
 
     // ---- Boot: catalogue, cart render, first intent ----
+    // Where the real checkout server lives. Only relevant when this file is
+    // served as a static asset (GitHub Pages etc.) with its placeholders intact:
+    // then the buyer is silently forwarded there, cart deep link intact.
+    const CHECKOUT_SERVER = 'https://site-8e2982c8d6184439b5371de37aa3ca1e.freebuff.page';
+
     (async () => {
       if (STRIPE_PUBLISHABLE_KEY.startsWith('__')) {
-        // Raw file opened without the backend (e.g. deployed as a static file).
-        // Fail loudly and visibly rather than showing a broken, fake checkout.
-        showError('Checkout unavailable — this page must be served by the ETORQUED checkout server.');
-        document.getElementById('submit').disabled = true;
-        document.getElementById('summary-submit').disabled = true;
+        // Raw file opened without the backend (e.g. deployed as a static file):
+        // forward to the checkout server instead of showing a broken checkout.
+        showError('Redirecting to ETORQUED checkout…');
+        location.replace(CHECKOUT_SERVER + '/checkout' + location.search);
         return;
       }
       await loadCatalogue();

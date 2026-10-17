@@ -101,7 +101,7 @@ export default {
     }
 
     // --- Checkout page served with the publishable key + mode injected -------
-    if (request.method === 'GET' && (url.pathname === '/checkout' || url.pathname === '/checkout.html')) {
+    if (request.method === 'GET' && (url.pathname === '/checkout' || url.pathname === '/checkout/' || url.pathname === '/checkout.html')) {
       const assetRes = await env.ASSETS.fetch(new Request('https://assets.local/checkout.html'));
       const rawHtml = await assetRes.text();
       const html = rawHtml
