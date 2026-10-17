@@ -66,6 +66,8 @@
       .summary { position: static; order: 2; }
     }
     .StripeElement { background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    #address-element { background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    #address-element + .note { margin-top: 8px; }
     .qty { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
     .qty-btn, .qty-rm {
       background: #ffffff; border: 1px solid var(--line); border-radius: 6px;
@@ -97,7 +99,10 @@
         <div class="or-divider">or pay with card</div>
 
         <form id="payment-form">
-          <p class="pay-label">Card details</p>
+          <p class="pay-label">Delivery address</p>
+          <div id="address-element"></div>
+          <p class="note">We ship to the address you enter here.</p>
+          <p class="pay-label" style="margin-top:12px">Card details</p>
           <div id="payment-element"></div>
           <div class="error" id="error-msg" role="alert"></div>
           <button class="pay-btn" type="submit" id="submit">
@@ -273,16 +278,30 @@
     };
 
     // (Re)initialise Elements + wallet buttons for the current intent.
+    let cardComplete = false, addressComplete = false;
     async function boot() {
       if (!currentSecret) return;
-      els = stripe.elements({ clientSecret: currentSecret, appearance: APPEARANCE });
+      els = stripe.elements({
+        clientSecret: currentSecret,
+        appearance: APPEARANCE,
+        // Collect a billing address on the card form whenever the chosen
+        // payment method needs one ('auto' = Stripe decides per method).
+        fields: { billingDetails: { address: 'auto' } },
+      });
 
       // 1) Apple Pay / Google Pay express buttons at the top
       const cartLabel = 'ETORQUED order';
       const pr = stripe.paymentRequest({
         country: 'IE', currency: 'eur',
         total: { label: cartLabel, amount: [...cart].reduce((s, [id, q]) => s + (CATALOGUE[id]?.amount || 0) * q, 0) },
-        requestPayerName: true, requestPayerEmail: true,
+        requestPayerName: true, requestPayerEmail: true, requestPayerPhone: true,
+        // Wallets must hand over a delivery address too (free shipping, so the
+        // amount never changes on address selection).
+        requestShipping: true,
+        shippingOptions: [{ id: 'free', label: 'Free shipping', amount: 0 }],
+      });
+      pr.on('shippingaddresschange', ev => {
+        ev.updateWith({ status: 'success', total: { label: cartLabel, amount: [...cart].reduce((s, [id, q]) => s + (CATALOGUE[id]?.amount || 0) * q, 0) } });
       });
       const canPay = await pr.canMakePayment();
       const walletBox = document.getElementById('wallet-buttons');
@@ -300,14 +319,29 @@
         if (error) { ev.complete('fail'); showError(error.message); } else { ev.complete('success'); showSuccess(); }
       });
 
-      // 2) Card form — Payment Element (clientSecret is on the Elements group)
+      // 2) Delivery address — dedicated Address Element (shipping mode).
+      // It shares the Elements group with the card form, so the address the
+      // customer enters is attached to the PaymentIntent automatically on
+      // confirmPayment({ elements }) — no extra wiring to leak it.
+      const addrBox = document.getElementById('address-element');
+      addrBox.innerHTML = '';
+      const addr = els.create('address', {
+        mode: 'shipping',
+        fields: { phone: 'always' },
+        autocomplete: { countryScope: 'EU' },
+        defaultValues: { country: 'IE' },
+      });
+      addr.mount('#address-element');
+      addr.on('change', e => { addressComplete = !!e.complete; });
+
+      // 3) Card form — Payment Element (clientSecret is on the Elements group)
       document.getElementById('payment-element').innerHTML = '';
       const pe = els.create('payment');
       pe.mount('#payment-element');
       pe.on('change', e => {
+        cardComplete = !!e.complete;
         const btn = document.getElementById('submit');
-        btn.disabled = !e.complete;
-        if (e.complete) btn.disabled = btn.disabled || busy;
+        btn.disabled = busy || !e.complete;
       });
     }
 
@@ -315,6 +349,10 @@
     document.getElementById('payment-form').addEventListener('submit', async e => {
       e.preventDefault();
       if (busy || !els) return;
+      if (!addressComplete) {
+        showError('Please enter your delivery address before paying.');
+        return;
+      }
       busy = true; setBusy(true);
       const { error } = await stripe.confirmPayment({ elements: els, confirmParams: { return_url: location.origin + '/checkout' } });
       if (error) showError(error.message);
