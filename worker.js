@@ -30,7 +30,11 @@ function corsHeaders(origin) {
 
 function allowedOrigins(env) {
   const raw = (env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
-  return base;
+  if (raw.length) return raw;
+  return [
+    'https://etorqued.com', 'https://www.etorqued.com',
+    'http://localhost:4242', 'http://localhost:4243',
+  ];
 }
 
 // Same-origin requests still send an Origin header on POST; those always pass.
