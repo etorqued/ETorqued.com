@@ -30,12 +30,12 @@ function corsHeaders(origin) {
 
 function allowedOrigins(env) {
   const raw = (env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
-  const base = raw.length ? raw : [
-    'https://etorqued.com', 'https://www.etorqued.com',
-    'http://localhost:4242', 'http://localhost:4243',
-    env.PREVIEW_ORIGIN || '',
-  ].filter(Boolean);
   return base;
+}
+
+// Same-origin requests still send an Origin header on POST; those always pass.
+function isSameOrigin(origin, url) {
+  try { return new URL(origin).hostname === url.hostname; } catch { return false; }
 }
 
 function json(body, { status = 200, corsOrigin = null, extra = {} } = {}) {
@@ -94,9 +94,9 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
-    // Cross-origin calls must come from an allowed origin; same-origin/no-Origin
-    // requests are fine (browsers only send Origin on cross-origin requests).
-    if (origin && !allowedOrigins(env).includes(origin)) {
+    // Cross-origin calls must come from an allowed origin; same-origin requests
+    // (including POSTs, which carry Origin even same-origin) always pass.
+    if (origin && !isSameOrigin(origin, url) && !allowedOrigins(env).includes(origin)) {
       return json({ error: { message: 'Origin not allowed' } }, { status: 403, corsOrigin: origin });
     }
 
