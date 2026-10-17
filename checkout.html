@@ -66,8 +66,10 @@
       .summary { position: static; order: 2; }
     }
     .StripeElement { background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
-    #address-element { background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
-    #address-element + .note { margin-top: 8px; }
+    /* Stripe auto-adds the class "StripeElement" to the mount container; keep the
+       boxed look for the card frame only — the Address Element renders bare. */
+    #address-element.StripeElement { background: transparent; border: 0; border-radius: 0; padding: 0; }
+    #address-element { margin-bottom: 14px; }
     .qty { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
     .qty-btn, .qty-rm {
       background: #ffffff; border: 1px solid var(--line); border-radius: 6px;
@@ -99,9 +101,7 @@
         <div class="or-divider">or pay with card</div>
 
         <form id="payment-form">
-          <p class="pay-label">Delivery address</p>
           <div id="address-element"></div>
-          <p class="note">We ship to the address you enter here.</p>
           <p class="pay-label" style="margin-top:12px">Card details</p>
           <div id="payment-element"></div>
           <div class="error" id="error-msg" role="alert"></div>
@@ -325,12 +325,8 @@
       // confirmPayment({ elements }) — no extra wiring to leak it.
       const addrBox = document.getElementById('address-element');
       addrBox.innerHTML = '';
-      const addr = els.create('address', {
-        mode: 'shipping',
-        fields: { phone: 'always' },
-        autocomplete: { countryScope: 'EU' },
-        defaultValues: { country: 'IE' },
-      });
+      // Stripe's own Address Element, options exactly as Stripe specifies.
+      const addr = els.create('address', { mode: 'shipping' });
       addr.mount('#address-element');
       addr.on('change', e => { addressComplete = !!e.complete; });
 
