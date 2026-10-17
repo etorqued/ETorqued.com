@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout — ETORQUED</title>
+  <meta name="robots" content="noindex, nofollow">
+  <!-- The native checkout runs on the ETORQUED checkout server (Worker host).
+       This static page exists only while the storefront is still served by
+       static hosting without a backend: it forwards the cart deep link
+       (?item=&qty= / ?items=..., or ?redirect_status=...) unchanged. -->
+  <script>
+    location.replace('https://site-8e2982c8d6184439b5371de37aa3ca1e.freebuff.page/checkout' + location.search);
+  </script>
+</head>
+<body>
+  <p>Taking you to ETORQUED checkout…</p>
+  <noscript><p><a href="https://site-8e2982c8d6184439b5371de37aa3ca1e.freebuff.page/checkout">Continue to checkout</a></p></noscript>
+</body>
+</html>
