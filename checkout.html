@@ -137,6 +137,13 @@
 
     const fmt = cents => (cents / 100).toLocaleString('en-IE', { style: 'currency', currency: 'EUR' });
 
+    // Add or accumulate one cart line. Quantities clamp to 1–10(× each line) —
+    // the same limits the server enforces when pricing and charging.
+    function addItem(id, qty = 1) {
+      if (typeof id !== 'string' || !/^[a-z0-9-]+$/i.test(id)) return;
+      cart.set(id, (cart.get(id) || 0) + Math.max(1, Math.min(10, parseInt(qty, 10) || 1)));
+    }
+
     function renderCart() {
       const box = document.getElementById('cart-lines');
       box.innerHTML = '';
@@ -191,15 +198,23 @@
       CATALOGUE = await res.json();
     }
 
-    // Deep-link support: ?item=<productId>&qty=<n> adds lines (default APEX x1).
+    // Deep-link support: ?item=<productId>&qty=<n> adds a single line, and
+    // ?items=<id>:<qty>,<id>:<qty> builds a whole multi-item cart from the bag.
     (function initCart() {
-      const add = (id, qty) => { if (id && /^[-a-z0-9_]+$/i.test(id)) cart.set(id, Math.max(1, Math.min(10, parseInt(qty, 10) || 1))); };
+      const add = addItem;
       const params = new URLSearchParams(location.search);
-      if (params.get('item')) {
+      const itemsParam = params.get('items');
+      if (itemsParam) {
+        for (const chunk of itemsParam.split(',')) {
+          const [id, qty] = chunk.split(':');
+          add(id, qty || 1);
+        }
+      } else if (params.get('item')) {
         add(params.get('item'), params.get('qty') || 1);
       } else {
         add('apex-pro', 1);
       }
+      if (!cart.size) addItem('apex-pro', 1);
     })();
 
     // (Re)create the PaymentIntent for the current cart and rebuild the form.

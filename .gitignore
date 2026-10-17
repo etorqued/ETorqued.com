@@ -9,3 +9,8 @@ node_modules/
 # OS noise
 .DS_Store
 Thumbs.db
+.secrets/
+
+# Worker build output + local wrangler state
+public/
+.wrangler/

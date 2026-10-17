@@ -441,8 +441,8 @@ function isHoneypotFilled(form) {
 }
 
 const products = [
-  { id: 'apex-pro', paymentLink: 'https://buy.stripe.com/3cI4gy650dqaalW864bsc00', collection: 'bikes', name: 'ETQ APEX', image: 'assets/apex-14-12-new.png', alt: 'ETQ APEX electric dirt bike with 14/12 wheel setup', price: 899.99, color: '#263746', mark: 'A', stock: 3, conversionSpec: '⚡ 3000W PEAK • 🔋 48V 23Ah • 🛞 14"/12" • 📏 28.3" SEAT', tagline: 'Agile, lightweight electric performance tuned for instant throttle response and effortless urban handling.', microSubhead: 'Tuned for speed, control, and daily versatility.', riderFit: 'Optimized for riders 4\'11"–5\'10"', specSummary: ['⚡ 3000W PEAK', '🔋 48V 23Ah', '🛞 14"/12"', '📏 28.3" SEAT'], description: 'Agile, lightweight electric performance tuned for instant throttle response and effortless urban handling.', specs: ['Range', 'Up to 34 miles'], detail: 'Motor 3 kW', range: 'Up to 34 miles (approx. 55 km) per charge', rangeNote: 'Estimated range; terrain, rider weight, speed, temperature, and riding mode affect battery range.', peakPower: 'Up to 3,000W peak', battery: '48V 23Ah lithium battery', topSpeed: 'Up to 40 mph', chargeTime: 'Approximately 6 hours', weight: 'Approximately 121 lb (listed net weight)', seatHeight: '28.3"', recommendedHeight: '4\'11"–5\'10"', maxRiderWeight: 'Approximately 265 lb', wheels: '14" / 12" wheels', warranty: '1-year limited warranty', bestFor: ['Beginner riders', 'Daily urban riding', 'Lightweight or compact riders'], riderFitGuidance: 'A compact, agile choice for riders in the listed height range. Taller riders or riders prioritizing a full-size frame may prefer ETQ VORTEX.', useCases: ['Urban riding: responsive and easy to handle.', 'Commuting: quiet electric performance for daily trips.', 'Recreation: versatile riding for casual outings.', 'Trails: suitable for lighter trail use; confirm terrain limits before riding.', 'Off-road: choose ETQ VORTEX for more aggressive terrain.'] },
-  { id: 'vortex-stealth', paymentLink: 'https://buy.stripe.com/eVq8wObpk71M51C2LKbsc01', collection: 'bikes', name: 'ETQ VORTEX', image: 'assets/vortex-17-14-new.jpg', alt: 'ETQ VORTEX electric dirt bike with 17/14 wheel setup', price: 1499.99, color: '#17191d', mark: 'V', stock: 5, conversionSpec: '⚡ 6000W PEAK • 🔋 72V 25Ah • 🛞 17"/14" • 📏 31.9" SEAT', tagline: 'Unleashed 6000W high-torque domination built for aggressive off-road terrain and max power delivery.', microSubhead: 'Raw power, full-size frame, and peak terrain control.', riderFit: 'Optimized for riders 5\'9"–6\'5"', specSummary: ['⚡ 6000W PEAK', '🔋 72V 25Ah', '🛞 17"/14"', '📏 31.9" SEAT'], description: 'Unleashed 6000W high-torque domination built for aggressive off-road terrain and max power delivery.', specs: ['Range', 'Up to 50 miles'], detail: 'Motor 6 kW', range: 'Up to 50 miles (approx. 80 km) per charge', rangeNote: 'Estimated range; terrain, rider weight, speed, temperature, and riding mode affect battery range.', peakPower: 'Up to 6,000W peak', battery: '72V 25Ah lithium-ion', topSpeed: 'Up to 53 mph', chargeTime: 'Approximately 7–8 hours', seatHeight: '31.9"', recommendedHeight: '5\'9"–6\'5"', maxRiderWeight: '287 lb', wheels: '17" / 14" wheels', warranty: '1-year limited warranty', bestFor: ['Aggressive off-road riding', 'Trail riding', 'Tall riders'], riderFitGuidance: 'A full-size, high-torque choice for riders in the listed height range and riders who want more off-road capability. Shorter or compact riders may find ETQ APEX easier to manage.', useCases: ['Urban riding: possible, but the full-size setup favors open riding.', 'Commuting: use only where the bike and route are permitted.', 'Recreation: suited to high-output recreational riding.', 'Trails: intended for stronger trail performance.', 'Off-road: the better fit for aggressive off-road use.'] },
+  { id: 'apex-pro', paymentLink: 'https://buy.stripe.com/3cI4gy650dqaalW864bsc00', collection: 'bikes', name: 'ETQ APEX', image: 'assets/apex-14-12-new.png', alt: 'ETQ APEX electric dirt bike with 14/12 wheel setup', price: 899.99, color: '#263746', mark: 'A', stock: 3, conversionSpec: '3000W PEAK · 48V 23Ah · 14"/12"', tagline: 'Agile, lightweight electric performance tuned for instant throttle response and effortless urban handling.', microSubhead: 'Tuned for speed, control, and daily versatility.', riderFit: 'Optimized for riders 4\'11"–5\'10"', specSummary: ['3000W PEAK', '48V 23Ah', '14"/12"'], description: 'Agile, lightweight electric performance tuned for instant throttle response and effortless urban handling.', specs: ['Range', 'Up to 34 miles'], detail: 'Motor 3 kW', range: 'Up to 34 miles (approx. 55 km) per charge', rangeNote: 'Estimated range; terrain, rider weight, speed, temperature, and riding mode affect battery range.', peakPower: 'Up to 3,000W peak', battery: '48V 23Ah lithium battery', topSpeed: 'Up to 40 mph', chargeTime: 'Approximately 6 hours', weight: 'Approximately 121 lb (listed net weight)', seatHeight: '28.3"', recommendedHeight: '4\'11"–5\'10"', maxRiderWeight: 'Approximately 265 lb', wheels: '14" / 12" wheels', warranty: '1-year limited warranty', bestFor: ['Beginner riders', 'Daily urban riding', 'Lightweight or compact riders'], riderFitGuidance: 'A compact, agile choice for riders in the listed height range. Taller riders or riders prioritizing a full-size frame may prefer ETQ VORTEX.', useCases: ['Urban riding: responsive and easy to handle.', 'Commuting: quiet electric performance for daily trips.', 'Recreation: versatile riding for casual outings.', 'Trails: suitable for lighter trail use; confirm terrain limits before riding.', 'Off-road: choose ETQ VORTEX for more aggressive terrain.'] },
+  { id: 'vortex-stealth', paymentLink: 'https://buy.stripe.com/eVq8wObpk71M51C2LKbsc01', collection: 'bikes', name: 'ETQ VORTEX', image: 'assets/vortex-17-14-new.jpg', alt: 'ETQ VORTEX electric dirt bike with 17/14 wheel setup', price: 1499.99, color: '#17191d', mark: 'V', stock: 5, conversionSpec: '6000W PEAK · 72V 25Ah · 17"/14"', tagline: 'Unleashed 6000W high-torque domination built for aggressive off-road terrain and max power delivery.', microSubhead: 'Raw power, full-size frame, and peak terrain control.', riderFit: 'Optimized for riders 5\'9"–6\'5"', specSummary: ['6000W PEAK', '72V 25Ah', '17"/14"'], description: 'Unleashed 6000W high-torque domination built for aggressive off-road terrain and max power delivery.', specs: ['Range', 'Up to 50 miles'], detail: 'Motor 6 kW', range: 'Up to 50 miles (approx. 80 km) per charge', rangeNote: 'Estimated range; terrain, rider weight, speed, temperature, and riding mode affect battery range.', peakPower: 'Up to 6,000W peak', battery: '72V 25Ah lithium-ion', topSpeed: 'Up to 53 mph', chargeTime: 'Approximately 7–8 hours', seatHeight: '31.9"', recommendedHeight: '5\'9"–6\'5"', maxRiderWeight: '287 lb', wheels: '17" / 14" wheels', warranty: '1-year limited warranty', bestFor: ['Aggressive off-road riding', 'Trail riding', 'Tall riders'], riderFitGuidance: 'A full-size, high-torque choice for riders in the listed height range and riders who want more off-road capability. Shorter or compact riders may find ETQ APEX easier to manage.', useCases: ['Urban riding: possible, but the full-size setup favors open riding.', 'Commuting: use only where the bike and route are permitted.', 'Recreation: suited to high-output recreational riding.', 'Trails: intended for stronger trail performance.', 'Off-road: the better fit for aggressive off-road use.'] },
   { id: 'apex-vented-front-plate', paymentLink: 'https://buy.stripe.com/4gMcN49hcfyieCcaecbsc03', collection: 'accessories', name: '"Apex" VENTED PLATE', image: 'assets/apex-vented-plate-front.png', gallery: ['assets/apex-vented-plate-front.png', 'assets/apex-vented-plate-side.png', 'assets/apex-vented-plate-angle.png'], alt: 'Gloss black Apex vented front plate', price: 22.99, color: '#242424', mark: 'A', stock: 8, description: 'High-gloss black cosmetic front plate with angular upper shield and lower mesh ventilation grid. Snap-on alternative to standard ODI plates.', features: ['High-gloss black cosmetic front plate', 'Angular upper shield with lower mesh ventilation grid', 'Snap-on alternative to standard ODI plates'], specs: ['Material', 'Gloss black plastic'], detail: 'Apex fitment' },
   { id: 'vortex-vented-front-plate', paymentLink: 'https://buy.stripe.com/9B600icto4TE9hS1HGbsc02', collection: 'accessories', name: '"Vortex" VENTED PLATE', image: 'assets/vortex-vented-plate-front.png', gallery: ['assets/vortex-vented-plate-front.png', 'assets/vortex-vented-plate-side.png', 'assets/vortex-vented-plate-angle.png'], alt: 'Gloss black Vortex vented front plate', price: 22.99, color: '#242424', mark: 'V', stock: 8, description: 'High-gloss black front plate featuring a curved top contour and wide diamond mesh grill. Lightweight snap-on aesthetic upgrade.', features: ['Curved top contour', 'Wide diamond mesh grill', 'Lightweight snap-on aesthetic upgrade'], specs: ['Material', 'Gloss black plastic'], detail: 'Vortex fitment' }
 ];
@@ -826,10 +826,10 @@ function renderProducts() {
     grid.innerHTML = products.filter((product) => product.collection === collection).map((product) => `
       <article class="product-card" data-reveal="card" data-product-id="${escapeHtml(product.id)}" tabindex="0" role="button" aria-label="View ${escapeHtml(product.name)}">
         <div class="product-visual product-visual--${escapeHtml(product.collection)}">${product.image ? `<img class="product-image" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.alt || product.name)}" loading="lazy" decoding="async">` : `<div class="product-art" style="--art:${escapeHtml(product.color)}" data-mark="${escapeHtml(product.mark)}"></div>`}</div>
-        <div class="product-info"><div class="product-info-copy"><h3>${escapeHtml(product.name)}</h3>${product.conversionSpec ? `<span class="product-specs">${escapeHtml(product.conversionSpec)}</span>` : ''}<span class="product-stock">⚡ In stock</span></div><span class="product-price">${euro(product.price)}</span></div>
+        <div class="product-info"><div class="product-info-copy"><h3>${escapeHtml(product.name)}</h3>${product.conversionSpec ? `<span class="product-specs">${escapeHtml(product.conversionSpec)}</span>` : ''}<span class="product-stock">In stock</span></div><span class="product-price">${euro(product.price)}</span></div>
         <div class="product-actions">
           <button class="quick-add" type="button" data-quick-add="${escapeHtml(product.id)}">Quick Add to Bag <span aria-hidden="true">→</span></button>
-          ${product.paymentLink ? `<a class="buy-now" href="${escapeHtml(product.paymentLink)}" target="_blank" rel="noopener noreferrer" data-buy-now="${escapeHtml(product.id)}" aria-label="Buy ${escapeHtml(product.name)} now — opens Stripe checkout in a new tab">Buy Now <span aria-hidden="true">↗</span></a>` : ''}
+          ${product.paymentLink ? `<a class="buy-now" href="/checkout?items=${encodeURIComponent(product.id)}:1" data-buy-now="${escapeHtml(product.id)}" aria-label="Buy ${escapeHtml(product.name)} now — goes to ETORQUED checkout">Buy Now <span aria-hidden="true">↗</span></a>` : ''}
         </div>
       </article>
     `).join('');
@@ -869,7 +869,6 @@ function renderBikeDetails(product) {
     ['Estimated top speed', product.topSpeed],
     ['Charge time', product.chargeTime],
     ['Bike weight', product.weight],
-    ['Seat height', product.seatHeight],
     ['Recommended rider height', product.recommendedHeight],
     ['Maximum rider / payload', product.maxRiderWeight],
     ['Wheels', product.wheels],
@@ -992,27 +991,24 @@ function cartTotal() {
   return cart.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
 }
 
-const CHECKOUT_ONE_AT_A_TIME = 'Please note: Due to specialized shipping, items must be checked out 1 at a time. Please adjust your bag quantity to 1 item to proceed.';
+// The bag is a real cart: every checkout point hands the whole bag to the
+// native ETORQUED checkout page, which prices the order on its own server.
+function checkoutUrl(cartLines) {
+  const payload = cartLines.map((item) => `${item.product.id}:${item.quantity}`).join(',');
+  return `/checkout?items=${encodeURIComponent(payload)}`;
+}
 
-// Every checkout point hands the buyer to Stripe, but only one unit at a time:
-// specialised shipping means a bag holding more than one item is stopped here
-// rather than sent to a payment link that cannot cover it.
 function goToCheckout() {
   if (!cart.length) return;
-  if (getCartCount() > 1) {
-    showCartToast(CHECKOUT_ONE_AT_A_TIME, { variant: 'error', duration: 9000 });
-    return;
-  }
-  const [single] = cart;
-  if (single.product.paymentLink) {
-    trackAnalyticsEvent('begin_checkout', checkoutEventParams(single));
-    window.open(single.product.paymentLink, '_blank', 'noopener,noreferrer');
-    return;
-  }
-  // The bag locks page scroll while it is open, so wait for its close
-  // transition (and the matching unlock) before scrolling to the products.
-  closeCart();
-  window.setTimeout(() => scrollToCollection('bikes-collection'), 760);
+  trackAnalyticsEvent('begin_checkout', checkoutEventParams({
+    product: cart[0].product, quantity: cart.reduce((count, item) => count + item.quantity, 0), variant: cart[0].variant, unitPrice: cart[0].unitPrice,
+  }));
+  window.location.href = checkoutUrl(cart);
+}
+
+function goToCheckoutSingle(product) {
+  trackAnalyticsEvent('begin_checkout', checkoutEventParams({ product, quantity: 1, variant: selectedVariant, unitPrice: getVariantPrice(product, selectedVariant) }));
+  window.location.href = checkoutUrl([{ product, quantity: 1 }]);
 }
 
 function renderCart(newVariantKey) {
@@ -1023,7 +1019,7 @@ function renderCart(newVariantKey) {
   }
   cartItems.innerHTML = cart.map((item, index) => `<article class="cart-item${item.variantKey === newVariantKey ? ' is-new' : ''}" data-cart-index="${index}">
     <div class="cart-item-visual${item.product.collection === 'accessories' ? ' accessory-lift' : ''}">${item.product.image ? `<img class="product-image" src="${escapeHtml(item.product.image)}" alt="${escapeHtml(item.product.alt || item.product.name)}" decoding="async">` : `<div class="product-art" style="--art:${escapeHtml(variantColors[item.variant.frame] || item.product.color)}" data-mark="${escapeHtml(item.product.mark)}"></div>`}</div>
-    <div class="cart-item-info"><h3>${escapeHtml(item.product.name)}</h3><p>${escapeHtml(getVariantLabel(item.variant))} · ${euro(item.unitPrice)} each</p>${item.product.paymentLink ? `<a class="cart-buy-now" href="${escapeHtml(item.product.paymentLink)}" target="_blank" rel="noopener noreferrer" aria-label="Buy ${escapeHtml(item.product.name)} now — opens Stripe checkout in a new tab">Buy now <span aria-hidden="true">↗</span></a>` : ''}</div>
+    <div class="cart-item-info"><h3>${escapeHtml(item.product.name)}</h3><p>${escapeHtml(getVariantLabel(item.variant))} · ${euro(item.unitPrice)} each</p>${item.product.paymentLink ? `<a class="cart-buy-now" href="/checkout?items=${encodeURIComponent(item.product.id)}:${item.quantity}" aria-label="Buy ${escapeHtml(item.product.name)} now — goes to ETORQUED checkout">Buy now <span aria-hidden="true">↗</span></a>` : ''}</div>
     <div class="cart-item-actions"><strong class="cart-item-total">${euro(item.unitPrice * item.quantity)}</strong><div class="cart-quantity"><button type="button" data-action="decrease" aria-label="Decrease ${item.product.name}">−</button><output>${item.quantity}</output><button type="button" data-action="increase" aria-label="Increase ${item.product.name}">+</button></div><button class="remove-item" type="button" data-action="remove">Remove</button></div>
   </article>`).join('');
   cartSubtotal.textContent = euro(cartTotal());
@@ -1125,15 +1121,14 @@ function quickAddToBag(product, sourceElement) {
 
 productGrids.forEach((grid) => {
   grid.addEventListener('click', (event) => {
-    // Buy Now is a real link: report the checkout, let the browser open Stripe
-    // in a new tab, and never also treat the tap as a request to open the
-    // product preview.
+    // Buy Now is a real link: report the checkout and let the browser follow it
+    // to the native checkout page — never also treat the tap as a request to
+    // open the product preview.
     const buyNow = event.target.closest('.buy-now');
     if (buyNow) {
       const buyNowProduct = products.find((item) => item.id === buyNow.dataset.buyNow);
       if (buyNowProduct) {
-        const unitPrice = getVariantPrice(buyNowProduct, selectedVariant);
-        trackAnalyticsEvent('begin_checkout', checkoutEventParams({ product: buyNowProduct, quantity: 1, variant: selectedVariant, unitPrice }));
+        goToCheckoutSingle(buyNowProduct);
       }
       return;
     }
@@ -1165,15 +1160,16 @@ cartItems.addEventListener('click', (event) => {
   const itemElement = event.target.closest('.cart-item');
   const item = itemElement ? cart[Number(itemElement.dataset.cartIndex)] : null;
   if (!item) return;
-  // Buy now inside the bag is the same act as Proceed to Checkout: report it,
-  // then let the link open Stripe as it normally would.
+  // Buy now inside the bag means “check out this whole bag”: report it and let
+  // goToCheckout carry the entire cart to the native checkout page.
   if (event.target.closest('.cart-buy-now')) {
-    trackAnalyticsEvent('begin_checkout', checkoutEventParams(item));
+    event.preventDefault();
+    goToCheckout();
     return;
   }
   const actionButton = event.target.closest('[data-action]');
   if (!actionButton) return;
-  if (actionButton.dataset.action === 'increase') item.quantity = Math.min(99, item.quantity + 1);
+  if (actionButton.dataset.action === 'increase') item.quantity = Math.min(10, item.quantity + 1);
   if (actionButton.dataset.action === 'decrease') item.quantity -= 1;
   if (actionButton.dataset.action === 'remove' || item.quantity <= 0) cart.splice(Number(itemElement.dataset.cartIndex), 1);
   updateBagBadge();
