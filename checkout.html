@@ -325,17 +325,16 @@
       // Maps key when paired with the Payment Element; full per-country
       // structured forms incl. Eircode). 'google_maps_api' would need our
       // own Google Places key instead.
-      // allowedCountries: Stripe accepts two-letter ISO codes only — 'EU'
-      // is not one, so the EU member states are listed explicitly.
+      // allowedCountries: EU-27 member states only (user-specified exact
+      // list). Two-letter ISO codes only — Stripe accepts nothing else.
       const addr = els.create('address', {
         mode: 'shipping',
         autocomplete: { mode: 'automatic' },
         fields: { phone: 'always' },
         allowedCountries: [
-          'IE', 'US', 'CA', 'GB',
-          'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
-          'DE', 'GR', 'HU', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL',
-          'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
+          'IE', 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI',
+          'FR', 'DE', 'GR', 'HU', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
+          'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
         ],
       });
       addr.mount('#address-element');
