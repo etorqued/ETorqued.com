@@ -8,6 +8,11 @@
   <!-- Loads Stripe Elements from Stripe's CDN. Page behaviour adapts to the
        server-injected mode (test/live) - see MODE below. -->
   <link rel="preconnect" href="https://js.stripe.com">
+  <!-- The intent/catalogue API calls and Stripe's confirm/handshake traffic
+       both hit api.stripe.com — open that connection during HTML parse so the
+       first fetch does not pay a full DNS+TLS+RTT roundtrip. -->
+  <link rel="preconnect" href="https://api.stripe.com" crossorigin>
+  <!-- Fonts are system-ui only (no webfont downloads); nothing to preload. -->
   <style>
     :root {
       --bg: #ffffff;
@@ -123,7 +128,9 @@
     </div>
   </div>
 
-  <script src="https://js.stripe.com/v3/"></script>
+  <!-- async: stripe.js downloads in parallel with HTML parsing and our API
+       calls instead of blocking first paint; the boot code below waits for it. -->
+  <script async src="https://js.stripe.com/v3/"></script>
   <script>
     // Publishable key and mode are injected by the server from .env.local at request time.
     const STRIPE_PUBLISHABLE_KEY = '__STRIPE_PUBLISHABLE_KEY__';
@@ -217,18 +224,22 @@
       if (!cart.size) addItem('apex-pro', 1);
     })();
 
-    // (Re)create the PaymentIntent for the current cart and rebuild the form.
-    async function refreshIntent() {
-      const res = await fetch('/api/create-payment-intent', {
+    // Shared request shape for the first paint and every cart change.
+    function intentRequest() {
+      return {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: [...cart].map(([productId, quantity]) => ({ productId, quantity })) }),
-      });
-      const data = await res.json();
+      };
+    }
+
+    // Validate a server response and (re)build the form against the intent.
+    async function applyIntentData(data) {
       if (data.error) { showError(data.error.message); return; }
       const { clientSecret, amount: serverAmount } = data;
       // Defence in depth: the rendered total must equal what the server computed.
       // If a catalogue mismatch ever crept in, refuse rather than mis-charge.
+      if (!CATALOGUE) { showError('Product prices could not be loaded — please reload the page.'); return; }
       const localTotal = [...cart].reduce((s, [id, q]) => s + (CATALOGUE[id]?.amount || 0) * q, 0);
       if (serverAmount !== localTotal) {
         showError('Prices were updated — please reload the page.');
@@ -238,13 +249,36 @@
       await boot(); // re-mount Elements + wallet against the new intent
     }
 
+    // (Re)create the PaymentIntent for the current cart and rebuild the form.
+    async function refreshIntent() {
+      const res = await fetch('/api/create-payment-intent', intentRequest());
+      await applyIntentData(await res.json());
+    }
+
     // Mode-honest copy. In live mode nothing on this page suggests a test.
     document.getElementById('sub-copy').textContent = MODE === 'live'
       ? 'You are paying for the items in your order. Card details are verified by Stripe before your order is confirmed.'
       : 'No real money is involved — this is a test-mode preview.';
     document.title = MODE === 'live' ? 'Checkout — ETORQUED' : 'Checkout (test) — ETORQUED';
 
-    const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+    // stripe.js loads with `async` (see the <head>), so it may not be defined
+    // yet. Wait for it without blocking — the cart/API work below starts now.
+    let stripe = null;
+    function whenStripeReady(onReady, onFail) {
+      if (window.Stripe) return onReady();
+      const tag = document.querySelector('script[src^="https://js.stripe.com"]');
+      if (tag) {
+        tag.addEventListener('load', onReady, { once: true });
+        tag.addEventListener('error', onFail, { once: true });
+      } else {
+        // Tag missing (blocked by an extension or proxy?): poll briefly.
+        let tries = 0;
+        const poll = setInterval(() => {
+          if (window.Stripe) { clearInterval(poll); onReady(); }
+          else if (++tries > 120) { clearInterval(poll); onFail(); }
+        }, 50);
+      }
+    }
 
     // Handle Stripe's redirect back after payment (return_url):
     // ?redirect_status=succeeded|failed|processing
@@ -284,7 +318,45 @@
         fields: { billingDetails: { address: 'auto' } },
       });
 
-      // 1) Apple Pay / Google Pay express buttons at the top
+      // 1) Delivery address — dedicated Address Element (shipping mode).
+      // It shares the Elements group with the card form, so the address the
+      // customer enters is attached to the PaymentIntent automatically on
+      // confirmPayment({ elements }) — no extra wiring to leak it.
+      const addrBox = document.getElementById('address-element');
+      addrBox.innerHTML = '';
+      // Stripe's official Address Element: shipping mode with Google Maps
+      // one-click autocomplete (mode 'automatic' uses Stripe's own Google
+      // Maps key when paired with the Payment Element; full per-country
+      // structured forms incl. Eircode). 'google_maps_api' would need our
+      // own Google Places key instead.
+      // allowedCountries: EU-27 member states only (user-specified exact
+      // list). Two-letter ISO codes only — Stripe accepts nothing else.
+      const addr = els.create('address', {
+        mode: 'shipping',
+        autocomplete: { mode: 'automatic' },
+        fields: { phone: 'always' },
+        allowedCountries: [
+          'IE', 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI',
+          'FR', 'DE', 'GR', 'HU', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
+          'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
+        ],
+      });
+      addr.mount('#address-element');
+      addr.on('change', e => { addressComplete = !!e.complete; });
+
+      // 2) Card form — Payment Element (clientSecret is on the Elements group)
+      document.getElementById('payment-element').innerHTML = '';
+      const pe = els.create('payment');
+      pe.mount('#payment-element');
+      pe.on('change', e => {
+        cardComplete = !!e.complete;
+        const btn = document.getElementById('submit');
+        btn.disabled = busy || !e.complete;
+      });
+
+      // 3) Apple Pay / Google Pay express buttons at the top — hydrated last,
+      //    because their availability probe can be slow (Apple Pay session
+      //    support check) and the address/card forms must not wait on it.
       const cartLabel = 'ETORQUED order';
       const pr = stripe.paymentRequest({
         country: 'IE', currency: 'eur',
@@ -312,42 +384,6 @@
       pr.on('paymentmethod', async ev => {
         const { error } = await stripe.confirmPayment({ clientSecret: currentSecret, payment_method: ev.paymentMethod.id, confirmParams: { return_url: location.origin + '/checkout' }, redirect: 'if_required' });
         if (error) { ev.complete('fail'); showError(error.message); } else { ev.complete('success'); showSuccess(); }
-      });
-
-      // 2) Delivery address — dedicated Address Element (shipping mode).
-      // It shares the Elements group with the card form, so the address the
-      // customer enters is attached to the PaymentIntent automatically on
-      // confirmPayment({ elements }) — no extra wiring to leak it.
-      const addrBox = document.getElementById('address-element');
-      addrBox.innerHTML = '';
-      // Stripe's official Address Element: shipping mode with Google Maps
-      // one-click autocomplete (mode 'automatic' uses Stripe's own Google
-      // Maps key when paired with the Payment Element; full per-country
-      // structured forms incl. Eircode). 'google_maps_api' would need our
-      // own Google Places key instead.
-      // allowedCountries: EU-27 member states only (user-specified exact
-      // list). Two-letter ISO codes only — Stripe accepts nothing else.
-      const addr = els.create('address', {
-        mode: 'shipping',
-        autocomplete: { mode: 'automatic' },
-        fields: { phone: 'always' },
-        allowedCountries: [
-          'IE', 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI',
-          'FR', 'DE', 'GR', 'HU', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
-          'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
-        ],
-      });
-      addr.mount('#address-element');
-      addr.on('change', e => { addressComplete = !!e.complete; });
-
-      // 3) Card form — Payment Element (clientSecret is on the Elements group)
-      document.getElementById('payment-element').innerHTML = '';
-      const pe = els.create('payment');
-      pe.mount('#payment-element');
-      pe.on('change', e => {
-        cardComplete = !!e.complete;
-        const btn = document.getElementById('submit');
-        btn.disabled = busy || !e.complete;
       });
     }
 
@@ -393,9 +429,19 @@
         location.replace(CHECKOUT_SERVER + '/checkout' + location.search);
         return;
       }
-      await loadCatalogue();
-      renderCart();
-      await refreshIntent();
+      // Everything warms up in parallel: the async stripe.js download, the
+      // PaymentIntent roundtrip and the catalogue fetch. Elements only waits
+      // on the client secret — the catalogue is just for rendering the summary
+      // and cross-checking the total, so it never gates the form.
+      const intentData = fetch('/api/create-payment-intent', intentRequest())
+        .then(r => r.json())
+        .catch(() => ({ error: { message: 'Could not reach the payment server — please refresh the page.' } }));
+      const catalogueReady = loadCatalogue().then(() => { renderCart(); }, () => {});
+      whenStripeReady(async () => {
+        stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+        await catalogueReady;
+        await applyIntentData(await intentData);
+      }, () => showError('Payment form could not load — please refresh the page.'));
     })();
   </script>
 </body>
