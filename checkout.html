@@ -81,6 +81,13 @@
     .qty-rm { color: var(--muted); margin-left: 4px; }
     .error { color: #c62828; font-size: 13px; margin-top: 10px; min-height: 18px; }
     .ok { color: var(--text); font-size: 14px; margin-top: 12px; }
+    /* Subtle skeleton shimmer while the Stripe iframes hydrate — no blank
+       boxes, no layout jump. Removed via each element's 'ready' event. */
+    .skeleton { background: #f3f3f3; border-radius: 8px; overflow: hidden; position: relative; }
+    .skeleton::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(0,0,0,.06), rgba(255,255,255,0));
+      animation: etq-shimmer 1.4s infinite; }
+    @keyframes etq-shimmer { 100% { transform: translateX(100%); } }
   </style>
 </head>
 <body>
@@ -139,8 +146,8 @@
     // ---- Cart state (client-side mirror; the server is the price authority) ----
     const cart = new Map(); // productId -> qty
     let CATALOGUE = null;   // fetched read-only from /api/products (prices live server-side)
-    let els = null;         // Stripe Elements group
-    let currentSecret = null;
+    let els = null;         // Stripe Elements group (created without an intent — deferred mode)
+    let walletPr = null;    // Apple/Google Pay paymentRequest (kept for amount updates)
 
     const fmt = cents => (cents / 100).toLocaleString('en-IE', { style: 'currency', currency: 'EUR' });
 
@@ -190,12 +197,12 @@
         const next = Math.max(1, Math.min(10, (cart.get(id) || 1) + parseInt(btn.dataset.d, 10)));
         cart.set(id, next);
         renderCart();
-        await refreshIntent();
+        syncAmount();
       } else if (btn.matches('.qty-rm')) {
         cart.delete(btn.dataset.id);
         if (!cart.size) addItem('apex-pro', 1); // never allow an empty cart
         renderCart();
-        await refreshIntent();
+        syncAmount();
       }
     });
 
@@ -224,7 +231,7 @@
       if (!cart.size) addItem('apex-pro', 1);
     })();
 
-    // Shared request shape for the first paint and every cart change.
+    // Shared request shape for checkout submission and wallet confirmation.
     function intentRequest() {
       return {
         method: 'POST',
@@ -233,26 +240,28 @@
       };
     }
 
-    // Validate a server response and (re)build the form against the intent.
-    async function applyIntentData(data) {
-      if (data.error) { showError(data.error.message); return; }
-      const { clientSecret, amount: serverAmount } = data;
-      // Defence in depth: the rendered total must equal what the server computed.
-      // If a catalogue mismatch ever crept in, refuse rather than mis-charge.
-      if (!CATALOGUE) { showError('Product prices could not be loaded — please reload the page.'); return; }
-      const localTotal = [...cart].reduce((s, [id, q]) => s + (CATALOGUE[id]?.amount || 0) * q, 0);
-      if (serverAmount !== localTotal) {
-        showError('Prices were updated — please reload the page.');
-        return;
-      }
-      currentSecret = clientSecret;
-      await boot(); // re-mount Elements + wallet against the new intent
+    // Deferred intents: no PaymentIntent is created while the page loads.
+    // The Elements group is built with mode/amount/currency alone; an intent
+    // (server-side pricing) is minted only when the buyer actually confirms,
+    // and the clientSecret is attached to the same Elements group at that point.
+    async function createIntent() {
+      const res = await fetch('/api/create-payment-intent', intentRequest());
+      return res.json();
     }
 
-    // (Re)create the PaymentIntent for the current cart and rebuild the form.
-    async function refreshIntent() {
-      const res = await fetch('/api/create-payment-intent', intentRequest());
-      await applyIntentData(await res.json());
+    // Current cart total from the server-authoritative price list.
+    function localTotalCents() {
+      return [...cart].reduce((s, [id, q]) => s + (CATALOGUE?.[id]?.amount || 0) * q, 0);
+    }
+
+    // Quantity changes only update the displayed amount — no intent roundtrip,
+    // no Elements rebuild, no form-state loss. This, not debounce timers, is
+    // why the form stays smooth: the inputs themselves live in Stripe's
+    // iframes and our page never processes their keystrokes.
+    function syncAmount() {
+      const total = localTotalCents();
+      try { if (els) els.update({ amount: total }); } catch (err) { /* keep last known amount */ }
+      try { if (walletPr) walletPr.update({ total: { label: 'ETORQUED order', amount: total } }); } catch (err) { /* ignore */ }
     }
 
     // Mode-honest copy. In live mode nothing on this page suggests a test.
@@ -306,12 +315,23 @@
       },
     };
 
-    // (Re)initialise Elements + wallet buttons for the current intent.
+    // Skeleton placeholders so the layout doesn't jump while Stripe's
+    // iframes hydrate; cleared via each element's own 'ready' event.
+    function showSkeleton(sel, rows) {
+      const box = document.querySelector(sel);
+      if (!box) return () => {};
+      box.innerHTML = rows.map(h => `<div class="skeleton" style="height:${h}px"></div>`).join('');
+    }
+
+    // Mount the payment UI once, straight from the publishable key — no intent
+    // roundtrip on the load path, so the form renders as soon as stripe.js is
+    // there. Deferred mode: clientSecret is attached later, at confirm time.
     let cardComplete = false, addressComplete = false;
-    async function boot() {
-      if (!currentSecret) return;
+    async function mountPaymentUi() {
       els = stripe.elements({
-        clientSecret: currentSecret,
+        mode: 'payment',
+        amount: localTotalCents(),
+        currency: 'eur',
         appearance: APPEARANCE,
         // Collect a billing address on the card form whenever the chosen
         // payment method needs one ('auto' = Stripe decides per method).
@@ -319,6 +339,10 @@
       });
 
       // 1) Delivery address — dedicated Address Element (shipping mode).
+      // It shares the Elements group with the card form, so the address the
+      // customer enters is attached to the PaymentIntent automatically on
+      // confirmPayment({ elements }) — no extra wiring to leak it.
+      showSkeleton('#address-element', [52, 52, 52, 52]);
       // It shares the Elements group with the card form, so the address the
       // customer enters is attached to the PaymentIntent automatically on
       // confirmPayment({ elements }) — no extra wiring to leak it.
@@ -342,12 +366,14 @@
         ],
       });
       addr.mount('#address-element');
+      addr.on('ready', () => { document.querySelectorAll('#address-element .skeleton').forEach(n => n.remove()); });
       addr.on('change', e => { addressComplete = !!e.complete; });
 
-      // 2) Card form — Payment Element (clientSecret is on the Elements group)
-      document.getElementById('payment-element').innerHTML = '';
+      // 2) Card form — Payment Element (intent attached at confirm time).
+      showSkeleton('#payment-element', [52]);
       const pe = els.create('payment');
       pe.mount('#payment-element');
+      pe.on('ready', () => { document.querySelectorAll('#payment-element .skeleton').forEach(n => n.remove()); });
       pe.on('change', e => {
         cardComplete = !!e.complete;
         const btn = document.getElementById('submit');
@@ -358,32 +384,43 @@
       //    because their availability probe can be slow (Apple Pay session
       //    support check) and the address/card forms must not wait on it.
       const cartLabel = 'ETORQUED order';
-      const pr = stripe.paymentRequest({
+      showSkeleton('#wallet-buttons', [44]);
+      walletPr = stripe.paymentRequest({
         country: 'IE', currency: 'eur',
-        total: { label: cartLabel, amount: [...cart].reduce((s, [id, q]) => s + (CATALOGUE[id]?.amount || 0) * q, 0) },
+        total: { label: cartLabel, amount: localTotalCents() },
         requestPayerName: true, requestPayerEmail: true, requestPayerPhone: true,
         // Wallets must hand over a delivery address too (free shipping, so the
         // amount never changes on address selection).
         requestShipping: true,
         shippingOptions: [{ id: 'free', label: 'Free shipping', amount: 0 }],
       });
-      pr.on('shippingaddresschange', ev => {
-        ev.updateWith({ status: 'success', total: { label: cartLabel, amount: [...cart].reduce((s, [id, q]) => s + (CATALOGUE[id]?.amount || 0) * q, 0) } });
+      walletPr.on('shippingaddresschange', ev => {
+        ev.updateWith({ status: 'success', total: { label: cartLabel, amount: localTotalCents() } });
       });
-      const canPay = await pr.canMakePayment();
+      const canPay = await walletPr.canMakePayment();
       const walletBox = document.getElementById('wallet-buttons');
-      walletBox.innerHTML = '';
+      walletBox.innerHTML = ''; // wipes the wallet skeleton too
       if (canPay) {
-        const prButton = els.create('paymentRequestButton', { paymentRequest: pr, style: { paymentRequestButton: { type: 'buy', theme: 'light-outline', height: '48px' } } });
+        const prButton = els.create('paymentRequestButton', { paymentRequest: walletPr, style: { paymentRequestButton: { type: 'buy', theme: 'light-outline', height: '48px' } } });
         prButton.mount('#wallet-buttons');
         if (canPay.applePay) walletBox.insertAdjacentHTML('beforeend', '<p class="note" style="margin-top:6px">Apple Pay available on this device.</p>');
         if (canPay.googlePay) walletBox.insertAdjacentHTML('beforeend', '<p class="note" style="margin-top:6px">Google Pay available on this device.</p>');
       } else {
         walletBox.innerHTML = '<p class="note">Apple Pay / Google Pay appear here on supported devices (Safari / Chrome with a wallet).</p>';
       }
-      pr.on('paymentmethod', async ev => {
-        const { error } = await stripe.confirmPayment({ clientSecret: currentSecret, payment_method: ev.paymentMethod.id, confirmParams: { return_url: location.origin + '/checkout' }, redirect: 'if_required' });
-        if (error) { ev.complete('fail'); showError(error.message); } else { ev.complete('success'); showSuccess(); }
+      walletPr.on('paymentmethod', async ev => {
+        try {
+          // Deferred-intent flow for wallets too: mint the intent only now,
+          // re-priced server-side from the same cart, then confirm.
+          const data = await createIntent();
+          if (data.error) throw new Error(data.error.message);
+          if (data.amount !== localTotalCents()) throw new Error('Prices were updated — please try again.');
+          const { error } = await stripe.confirmPayment({ clientSecret: data.clientSecret, payment_method: ev.paymentMethod.id, confirmParams: { return_url: location.origin + '/checkout' }, redirect: 'if_required' });
+          if (error) { ev.complete('fail'); showError(error.message); } else { ev.complete('success'); showSuccess(); }
+        } catch (err) {
+          ev.complete('fail');
+          showError(err.message || 'Payment could not start — please try again.');
+        }
       });
     }
 
@@ -396,9 +433,25 @@
         return;
       }
       busy = true; setBusy(true);
-      const { error } = await stripe.confirmPayment({ elements: els, confirmParams: { return_url: location.origin + '/checkout' } });
-      if (error) showError(error.message);
-      busy = false; setBusy(false);
+      try {
+        // Deferred-intent flow: create the intent (server-side pricing) only
+        // now, then confirm against the already-rendered Elements group.
+        const data = await createIntent();
+        if (data.error) { showError(data.error.message); return; }
+        // Defence in depth: the displayed total must equal what the server
+        // computed. If a catalogue mismatch ever crept in, refuse rather than
+        // mis-charge.
+        if (data.amount !== localTotalCents()) {
+          showError('Prices were updated — please reload the page.');
+          return;
+        }
+        const { error } = await stripe.confirmPayment({ clientSecret: data.clientSecret, elements: els, confirmParams: { return_url: location.origin + '/checkout' } });
+        if (error) showError(error.message);
+      } catch (err) {
+        showError(err?.message || 'Could not reach the payment server — please try again.');
+      } finally {
+        busy = false; setBusy(false);
+      }
     });
     document.getElementById('summary-submit').addEventListener('click', () => {
       document.getElementById('submit').click(); // same form, same flow
@@ -429,18 +482,16 @@
         location.replace(CHECKOUT_SERVER + '/checkout' + location.search);
         return;
       }
-      // Everything warms up in parallel: the async stripe.js download, the
-      // PaymentIntent roundtrip and the catalogue fetch. Elements only waits
-      // on the client secret — the catalogue is just for rendering the summary
-      // and cross-checking the total, so it never gates the form.
-      const intentData = fetch('/api/create-payment-intent', intentRequest())
-        .then(r => r.json())
-        .catch(() => ({ error: { message: 'Could not reach the payment server — please refresh the page.' } }));
+      // Everything warms up in parallel: the async stripe.js download and the
+      // catalogue fetch (summary + starting amount). NO PaymentIntent is
+      // created on load — the Elements group mounts with mode/amount/currency
+      // straight away, and an intent is minted only when the buyer confirms.
       const catalogueReady = loadCatalogue().then(() => { renderCart(); }, () => {});
       whenStripeReady(async () => {
         stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
         await catalogueReady;
-        await applyIntentData(await intentData);
+        if (!CATALOGUE) { showError('Product prices could not be loaded — please reload the page.'); return; }
+        await mountPaymentUi();
       }, () => showError('Payment form could not load — please refresh the page.'));
     })();
   </script>
