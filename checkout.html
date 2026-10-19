@@ -472,15 +472,16 @@
     // Where the real checkout server lives. Only relevant when this file is
     // served as a static asset (GitHub Pages etc.) with its placeholders intact:
     // then the buyer is silently forwarded there, cart deep link intact.
-    const CHECKOUT_SERVER = 'etorqued.com';
+    const CHECKOUT_SERVER = 'https://etorqued.com';
 
-    (async () => {
-      if (STRIPE_PUBLISHABLE_KEY.startsWith('__')) {
-        // Raw file opened without the backend (e.g. deployed as a static file):
-        // forward to the checkout server instead of showing a broken checkout.
-        showError('Redirecting to ETORQUED checkout…');
-        location.replace(CHECKOUT_SERVER + '/checkout' + location.search);
-        return;
+(async () => {
+  /*
+  if (STRIPE_PUBLISHABLE_KEY.startsWith('__')) {
+      showError('Redirecting to ETORQUED checkout...');
+      location.replace(CHECKOUT_SERVER + '/checkout' + location.search);
+      return;
+  }
+  */
       }
       // Everything warms up in parallel: the async stripe.js download and the
       // catalogue fetch (summary + starting amount). NO PaymentIntent is
