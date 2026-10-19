@@ -16,7 +16,7 @@ PRODUCTS['etq-bike'] = PRODUCTS['vortex-stealth']; // legacy alias
 const MAX_ITEMS = 50; // units per order
 const MAX_QTY = 10;   // per line
 const SECRET_MASK = /^[sS][kK]_[lL]i[vV][eE]_|^[sS][kK]_[tT][eE][sS][tT]_/;
-const HOST_SUFFIXES = /^(\.etorqued\.com$|^\.freebuff\.page$)/; // product & preview hosts
+const HOST_SUFFIXES = /^(\.etorqued\.com$)/; // product & preview hosts
 const DEFAULT_HOSTS = ['etorqued.com', 'www.etorqued.com', 'localhost'];
 
 function corsHeaders(origin) {
@@ -91,7 +91,7 @@ export default {
     const hostAllow = (env.ALLOWED_HOSTS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
     const hostOk = hostAllow.length
       ? hostAllow.includes(hostname) || hostAllow.some((h) => hostname.endsWith(`.${h}`))
-      : DEFAULT_HOSTS.includes(hostname) || HOST_SUFFIXES.test(`.${hostname}`.replace(hostname, `.${hostname}`)) || hostname.endsWith('.etorqued.com') || hostname.endsWith('.freebuff.page');
+      : DEFAULT_HOSTS.includes(hostname) || HOST_SUFFIXES.test(`.${hostname}`.replace(hostname, `.${hostname}`)) || hostname.endsWith('.etorqued.com') || hostname.endsWith('.etorqued.com');
     if (!hostOk) return json({ error: { message: 'Forbidden host' } }, { status: 403 });
 
     if (request.method === 'OPTIONS') {
