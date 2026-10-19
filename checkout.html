@@ -475,13 +475,14 @@
     const CHECKOUT_SERVER = 'https://etorqued.com';
 
 (async () => {
-  /*
-  if (STRIPE_PUBLISHABLE_KEY.startsWith('__')) {
-      showError('Redirecting to ETORQUED checkout...');
-      location.replace(CHECKOUT_SERVER + '/checkout' + location.search);
-      return;
-  }
-  */
+    /*
+    if (STRIPE_PUBLISHABLE_KEY.startsWith('__')) {
+        showError('Redirecting to ETORQUED checkout...');
+        location.replace(CHECKOUT_SERVER + '/checkout' + location.search);
+        return;
+    }
+    */
+})
       }
       // Everything warms up in parallel: the async stripe.js download and the
       // catalogue fetch (summary + starting amount). NO PaymentIntent is
