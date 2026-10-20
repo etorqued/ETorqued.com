@@ -73,20 +73,35 @@ async function stripeCreatePaymentIntent(secret, amount, currency, metadata) {
   if (!res.ok) throw new Error(data?.error?.message || `Stripe error ${res.status}`);
   return data;
 }
-
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const hostname = url.hostname.toLowerCase();
-    const origin = request.headers.get('Origin') || '';
 
-    if (!/^[a-z]+_/.test(env.STRIPE_SECRET_KEY || '') || env.STRIPE_SECRET_KEY === 'not_yet_set') {
-      return json({ error: { message: 'Payment backend not configured — set STRIPE_SECRET_KEY in Sites → Secrets.' } }, { status: 503 });
-    }
-    if (!SECRET_MASK.test(env.STRIPE_SECRET_KEY)) {
-      return json({ error: { message: 'STRIPE_SECRET_KEY must start with sk_live_ or sk_test_.' } }, { status: 503 });
+    // 1. Handle API endpoints (Stripe Payment Intent)
+    if (url.pathname.startsWith('/api/')) {
+      return handleApi(request, env);
     }
 
+    // 2. Handle Static Assets safely without crashing
+    if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
+      try {
+        const assetResponse = await env.ASSETS.fetch(request);
+        if (assetResponse.status !== 404) {
+          return assetResponse;
+        }
+      } catch (err) {
+        // Fall through safely if ASSETS.fetch fails
+      }
+    }
+
+    // 3. Prevent Error 1101 on missing favicon or static files
+    if (url.pathname === '/favicon.ico') {
+      return new Response(null, { status: 204 });
+    }
+
+    return new Response('Not Found', { status: 404 });
+  }
+};
     // Host allowlist (defense in depth against spoofed Host headers).
     const hostAllow = (env.ALLOWED_HOSTS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
     const hostOk = hostAllow.length
