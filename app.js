@@ -1411,25 +1411,6 @@ document.addEventListener('click', (event) => {
   clearAnalyticsConsent();
   window.location.reload();
 });
-// Global catch-all to override Stripe links and route natively
-document.addEventListener('click', (event) => {
-  const target = event.target.closest('a, button, .buy-now, .cart-buy-now');
-  if (!target) return;
-
-  const href = target.getAttribute('href') || '';
-  const buyNowAttr = target.dataset.buyNow;
-  const isCartBuyNow = target.classList.contains('cart-buy-now');
-
-  if (href.includes('buy.stripe.com') || buyNowAttr || isCartBuyNow) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    let productId = buyNowAttr;
-    if (isCartBuyNow) {
-      const itemElement = target.closest('.cart-item');
-      const item = itemElement && cart ? cart[Number(itemElement.dataset.cartIndex)] : null;
-      if (item) {
-        productId = item.product ? item.product.id : item.id;
       }
     }
 
