@@ -994,7 +994,11 @@ function cartTotal() {
 // The bag is a real cart: every checkout point hands the whole bag to the
 // native ETORQUED checkout page, which prices the order on its own server.
 function checkoutUrl(cartLines) {
-  const payload = cartLines.map((item) => `${item.product.id}:${item.quantity}`).join(',');
+  const payload = cartLines.map((item) => {
+    const id = item.product ? item.product.id : item.id;
+    const qty = item.quantity || 1;
+    return `${id}:${qty}`;
+  }).join(',');
   return `/checkout?items=${encodeURIComponent(payload)}`;
 }
 
