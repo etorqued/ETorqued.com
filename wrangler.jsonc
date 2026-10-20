@@ -5,8 +5,6 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "./public" },
   "vars": {
-    "STRIPE_SECRET_KEY": "sk_test_LOCALTESTDEV",
-    "STRIPE_PUBLISHABLE_KEY": "pk_test_LOCALTESTDEV",
-    "ALLOWED_ORIGINS": "http://localhost:8787"
+    "ALLOWED_ORIGINS": "https://etorqued.com, https://www.etorqued.com"
   }
 }
