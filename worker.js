@@ -169,7 +169,10 @@ export default {
     }
 
     // --- Everything else is a static asset ----------------------------------
-    return env.ASSETS.fetch(request);
+    if (env.ASSETS) {
+  return env.ASSETS.fetch(request);
+}
+return new Response(null, { status: 404 });
   },
 };
 
