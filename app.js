@@ -907,11 +907,11 @@ function openPreview(product) {
     document.querySelector('#previewSpecs').innerHTML = specs.map((spec) => `<li><span>${escapeHtml(spec)}</span></li>`).join('');
     document.querySelector('#previewDelivery').textContent = 'Free EU-wide shipping · 7 business days';
   }
-  const previewBuyNow = document.querySelector('#previewBuyNow');
-  if (previewBuyNow) {
-    previewBuyNow.hidden = !product.paymentLink;
-    if (product.paymentLink) previewBuyNow.href = product.paymentLink;
-  }
+ const previewBuyNow = document.querySelector('#previewBuyNow');
+if (previewBuyNow) {
+  previewBuyNow.hidden = false;
+  previewBuyNow.href = `/checkout?items=${product.id}:1`;
+}
   previewQuantity.value = selectedQuantity;
   previewArt.style.setProperty('--art', product.color);
   previewArt.dataset.mark = product.mark;
