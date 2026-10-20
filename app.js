@@ -829,7 +829,7 @@ function renderProducts() {
         <div class="product-info"><div class="product-info-copy"><h3>${escapeHtml(product.name)}</h3>${product.conversionSpec ? `<span class="product-specs">${escapeHtml(product.conversionSpec)}</span>` : ''}<span class="product-stock">In stock</span></div><span class="product-price">${euro(product.price)}</span></div>
         <div class="product-actions">
           <button class="quick-add" type="button" data-quick-add="${escapeHtml(product.id)}">Quick Add to Bag <span aria-hidden="true">→</span></button>
-          ${product.paymentLink ? `<a class="buy-now" href="/checkout?items=${encodeURIComponent(product.id)}:1" data-buy-now="${escapeHtml(product.id)}" aria-label="Buy ${escapeHtml(product.name)} now — goes to ETORQUED checkout">Buy Now <span aria-hidden="true">↗</span></a>` : ''}
+          <a class="buy-now" href="/checkout?items=${encodeURIComponent(product.id)}:1" data-buy-now="${escapeHtml(product.id)}" aria-label="Buy ${escapeHtml(product.name)} now — goes to ETORQUED checkout">Buy Now <span aria-hidden="true">↗</span></a>
         </div>
       </article>
     `).join('');
