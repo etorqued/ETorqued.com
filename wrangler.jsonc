@@ -3,7 +3,10 @@
   "main": "worker.js",
   "compatibility_date": "2025-10-01",
   "compatibility_flags": ["nodejs_compat"],
-  "assets": { "directory": "./public" },
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./public"
+  },
   "vars": {
     "ALLOWED_ORIGINS": "https://etorqued.com, https://www.etorqued.com"
   }
