@@ -1118,18 +1118,18 @@ function quickAddToBag(product, sourceElement) {
   addToCart(product, 1, { frame: 'Stealth Black', battery: product.battery || '60V Standard' }, { sourceElement });
   window.setTimeout(openCart, 420);
 }
-
 productGrids.forEach((grid) => {
   grid.addEventListener('click', (event) => {
-    // Buy Now is a real link: report the checkout and let the browser follow it
-    // to the native checkout page — never also treat the tap as a request to
-    // open the product preview.
+    // Intercept Buy Now clicks and redirect to native checkout page
     const buyNow = event.target.closest('.buy-now');
     if (buyNow) {
-      const buyNowProduct = products.find((item) => item.id === buyNow.dataset.buyNow);
-      if (buyNowProduct) {
-        goToCheckoutSingle(buyNowProduct);
+      event.preventDefault();
+      const productId = buyNow.dataset.buyNow;
+      if (productId) {
+        window.location.href = `/checkout?items=${productId}:1`;
       }
+      return;
+    }
       return;
     }
     const quickAdd = event.target.closest('.quick-add');
@@ -1160,11 +1160,12 @@ cartItems.addEventListener('click', (event) => {
   const itemElement = event.target.closest('.cart-item');
   const item = itemElement ? cart[Number(itemElement.dataset.cartIndex)] : null;
   if (!item) return;
-  // Buy now inside the bag means “check out this whole bag”: report it and let
-  // goToCheckout carry the entire cart to the native checkout page.
   if (event.target.closest('.cart-buy-now')) {
     event.preventDefault();
-    goToCheckout();
+    window.location.href = `/checkout?items=${item.id}:${item.quantity || 1}`;
+    return;
+  }
+});
     return;
   }
   const actionButton = event.target.closest('[data-action]');
