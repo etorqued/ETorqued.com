@@ -1,3 +1,13 @@
+window.addEventListener('click', function(e) {
+  const buyBtn = e.target.closest('a.buy-now, a.cart-buy-now, [data-buy-now]');
+  if (buyBtn) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const targetUrl = buyBtn.getAttribute('href') || `/checkout?items=${buyBtn.getAttribute('data-buy-now')}:1`;
+    window.location.assign(targetUrl);
+    return false;
+  }
+}, true);
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
