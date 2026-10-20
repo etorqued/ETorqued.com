@@ -1166,11 +1166,12 @@ cartItems.addEventListener('click', (event) => {
   if (!item) return;
   if (event.target.closest('.cart-buy-now')) {
     event.preventDefault();
-    window.location.href = `/checkout?items=${item.id}:${item.quantity || 1}`;
+    const id = item.product ? item.product.id : item.id;
+    const qty = item.quantity || 1;
+    window.location.href = `/checkout?items=${id}:${qty}`;
     return;
   }
 });
-    return;
   }
   const actionButton = event.target.closest('[data-action]');
   if (!actionButton) return;
